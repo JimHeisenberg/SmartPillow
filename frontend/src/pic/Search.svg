@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" viewBox="0 0 20 20">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: none;
+      }
+
+      .cls-2 {
+        clip-path: url(#clip-path);
+      }
+
+      .cls-3 {
+        fill: #fff;
+      }
+    </style>
+    <clipPath id="clip-path">
+      <rect class="cls-1" width="20" height="20"/>
+    </clipPath>
+  </defs>
+  <g id="Search" class="cls-2">
+    <path id="路径_2" data-name="路径 2" class="cls-3" d="M2.5,8.75A6.189,6.189,0,0,1,8.75,2.5,6.189,6.189,0,0,1,15,8.75,6.189,6.189,0,0,1,8.75,15,6.189,6.189,0,0,1,2.5,8.75ZM17.875,19.625a1.237,1.237,0,0,0,1.75-1.75L15.75,14A8.558,8.558,0,0,0,17.5,8.75,8.7,8.7,0,0,0,8.75,0,8.7,8.7,0,0,0,0,8.75,8.7,8.7,0,0,0,8.75,17.5,8.558,8.558,0,0,0,14,15.75Z"/>
+  </g>
+</svg>

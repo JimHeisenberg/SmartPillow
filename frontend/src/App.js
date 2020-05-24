@@ -1,26 +1,31 @@
 import React from 'react';
 import logo from './logo.svg';
 import './App.css';
+import { Route, Switch } from "react-router-dom";
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+import HomeSearch from "./component/home-search";
+
+import WrappedNormalLoginForm from "./component/login"
+import WrappedRegistrationForm from  "./component/register"
+
+import Device from "./component/device";
+import WrappedAddDevice from "./component/add_device";
+import Setting from "./component/setting";
+import WrappedSetTime from "./component/set_time"
+
+class App extends React.Component {
+  render() {
+      return (
+          <div>
+              <Route exact={true} path="/" component={HomeSearch}/>
+              <Route path="/login" component={WrappedNormalLoginForm}/>
+              <Route path="/register" component={WrappedRegistrationForm}/>
+              <Route path="/device" component={Device}/>
+              <Route path="/add_device" component={WrappedAddDevice}/>
+              <Route path="/setting" component={Setting}/>
+              <Route path="/set_time" component={WrappedSetTime}/>
+          </div>
+      )
+  }
 }
-
 export default App;
