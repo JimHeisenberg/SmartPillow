@@ -5,19 +5,11 @@ import socket
 import datetime
 import tensorflow as tf
 import numpy as np
-try:
-    if "MSC" in sys.version:
-        try:
-            PATH = os.path.dirname((os.getcwd()))
-        except:
-            PATH = "../"
-    elif "GCC" in sys.version:
-        PATH = "/root/SmartPillow/"
-    sys.path.append(PATH)
-    from utils import sql
-except Exception as e:
-    raise e
+import sql
 
+
+pg = sql.PostgreSQL(database="SmartPillowDB",
+                    user="postgres", password="jimpsql")
 if "MSC" in sys.version:
     HOST = "127.0.0.1"
 elif "GCC" in sys.version:
@@ -102,7 +94,8 @@ def handle(connectionSocket, socketList, SocketUserID):
         # connectionSocket.setblocking(False)
         sentence = connectionSocket.recv(BUFFER_SIZE)
         data = json.loads(sentence.decode())
-        print(f"recv from: {connectionSocket.getpeername()}, data = {data}", flush=True)
+        print(
+            f"recv from: {connectionSocket.getpeername()}, data = {data}", flush=True)
         # check data
         data, UserID = check(data)
         if SocketUserID != UserID:
@@ -115,7 +108,8 @@ def handle(connectionSocket, socketList, SocketUserID):
         socketList.remove([SocketUserID, connectionSocket])
         try:
             connectionSocket.send(str(e).encode())
-            print(f"connection socket close: {connectionSocket.getpeername()}", flush=True)
+            print(
+                f"connection socket close: {connectionSocket.getpeername()}", flush=True)
         except:
             # connectionSocket is already closed
             pass
@@ -152,8 +146,6 @@ def handle(connectionSocket, socketList, SocketUserID):
 
 
 if __name__ == "__main__":
-    pg = sql.PostgreSQL(database="SmartPillowDB",
-                        user="postgres", password="jimpsql")
     serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     serverSocket.bind((HOST, SERVER_PORT))
     serverSocket.listen(MAX_CONNECTION)

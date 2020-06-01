@@ -6,18 +6,7 @@ import socket
 import datetime
 import tensorflow as tf
 import numpy as np
-try:
-    if "MSC" in sys.version:
-        try:
-            PATH = os.path.dirname((os.path.dirname(__file__)))
-        except:
-            PATH = "../"
-    elif "GCC" in sys.version:
-        PATH = "/root/SmartPillow/"
-    sys.path.append(PATH)
-    from utils import sql
-except Exception as e:
-    raise e
+import sql
 
 pg = sql.PostgreSQL(database="SmartPillowDB",
                     user="postgres", password="jimpsql")
