@@ -16,7 +16,7 @@ elif "GCC" in sys.version:
     HOST = "172.17.0.13"
 else:
     HOST = "localhost"
-SERVER_PORT = 54321
+SERVER_PORT = 12345
 
 
 app = Flask(__name__)
