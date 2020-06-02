@@ -82,7 +82,7 @@ def check(data):
         for value in data["Pressure"]:
             if type(value) is not float:
                 raise Exception("""Pressure type invalid""")
-    if type(data["Pressure"]) in (int, float):
+    elif type(data["Pressure"]) in (int, float):
         data["Pressure"] = list(data["Pressure"])
     else:
         raise Exception("""Pressure type invalid""")
