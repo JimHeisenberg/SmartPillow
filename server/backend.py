@@ -7,9 +7,9 @@ from flask import Flask, current_app, request, abort
 from itsdangerous import BadData, TimedJSONWebSignatureSerializer as Serializer
 import sql
 
+
 pg = sql.PostgreSQL(database="SmartPillowDB",
                     user="postgres", password="jimpsql")
-
 if "MSC" in sys.version:
     HOST = "127.0.0.1"
 elif "GCC" in sys.version:
@@ -371,7 +371,4 @@ def account():
 
 
 if __name__ == "__main__":
-    if "MSC" in sys.version:
-        app.run(host='127.0.0.1', port=12345, debug=True)
-    elif "GCC" in sys.version:
-        app.run(host='172.17.0.13', port=12345, debug=True)
+    app.run(host=HOST, port=SERVER_PORT, debug=True)

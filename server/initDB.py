@@ -8,6 +8,7 @@ import tensorflow as tf
 import numpy as np
 import sql
 
+
 pg = sql.PostgreSQL(database="SmartPillowDB",
                     user="postgres", password="jimpsql")
 # pg.select("*", "UserTable")
@@ -27,6 +28,9 @@ for number in range(1, 10):
     device = {"DeviceName": f"SmartPillow{number}", "UserID": 0}
     pg.insert(device, "DeviceTable")
 
+for number in range(10, 20):
+    device = {"DeviceName": f"Light{number}", "UserID": 0}
+    pg.insert(device, "DeviceTable")
 
 # create fake data as train data
 mu, sigma = 0.7, 0.05

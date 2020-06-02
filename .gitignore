@@ -1,10 +1,8 @@
 .vscode/
-temp/*
 */__pycache__
-*/*.out
-
-data/SmartPillowModel.h5
 
 docs/*
 !docs/*.md
+
+temp/*
 !temp/*.md

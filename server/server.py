@@ -19,7 +19,7 @@ else:
 SERVER_PORT = 54321
 MAX_CONNECTION = 99
 BUFFER_SIZE = 8124
-MODEL_NAME = PATH + "/data/" + "SmartPillowModel" + ".h5"
+MODEL_NAME = "./data/" + "SmartPillowModel" + ".h5"
 
 
 def buildModel():
@@ -55,20 +55,28 @@ def buildModel():
 
 
 def check(data):
+    """
+    check if the format of data is valid
+    if valid return [data, UserID]
+    else raise Exception
+    """
     if "DataID" in data.keys():
         raise Exception(""""DataID" in data.keys()""")
     for key in data.keys():
-        if key not in ["DeviceID", "Pressure", "Volume", "DateTime"]:
-            raise Exception(
-                """key not in ["DeviceID", "Pressure", "Volume", "DateTime"]""")
+        if key not in ["DeviceID", "Pressure", "Timedelta", "Volume", "DateTime"]:
+            raise Exception("""data.keys() invalid""")
+
     if "DeviceID" not in data.keys():
         raise Exception(""""DeviceID" not in data.keys()""")
-
     if "DateTime" not in data.keys():
         data["DateTime"] = datetime.datetime.now()
     else:  # data.has_key("DateTime"):
         data["DateTime"] = datetime.datetime.fromisoformat(
             data["DateTime"])
+    if "Timedelta" not in data.keys():
+        data["Timedelta"] = datetime.timedelta(seconds=0.5)
+    else:  # data.has_key("Timedelta"):
+        data["Timedelta"] = datetime.timedelta(seconds=data["Timedelta"])
 
     UserID = pg.select("UserID", "DeviceTable",
                        f""" "DeviceID"='{data["DeviceID"]}' """)
@@ -86,10 +94,33 @@ def reply(response, socketList, UserID):
             try:
                 cSocket.send(response.encode())
             except:
+                # connectionSocket is already closed
                 socketList.remove([uID, cSocket])
 
 
 def handle(connectionSocket, socketList, SocketUserID):
+    """
+    Receive
+    {
+        "DeviceID":int, e.g. 1
+        "Pressure":array of double/float,e.g.[0.1, 0.2,0.3]
+        //optional
+        "Timedelta":float, e.g. 0.5(optional, default=0.5)
+        "Volume":array of double/float,e.g.[0.1, 0.2,0.3](optional, same length as Pressure) 
+        "DateTime":isoformat (optional)
+    }
+    Send
+    {
+        "DeviceID":int,
+        "IsSleeping":int, e.g. 0
+        "DateTime":isoformat string,e.g. "2020-06-01T01:23:45"
+        "Hash": int, e.g. 3346740174
+        "PeriodNumber":3,
+        "TimePeriod0":{"TimeID":int,"SleepingTime":isoTime, "WakeupTime":isoTime},
+        "TimePeriod1":{"TimeID":int,"SleepingTime":isoTime, "WakeupTime":isoTime},
+        "TimePeriod2":{"TimeID":int,"SleepingTime":isoTime, "WakeupTime":isoTime}
+    }
+    """
     try:
         # connectionSocket.setblocking(False)
         sentence = connectionSocket.recv(BUFFER_SIZE)
@@ -116,11 +147,22 @@ def handle(connectionSocket, socketList, SocketUserID):
         connectionSocket.close()
         # skip this wrong data
         return
+
+    # save and predict
     if "Pressure" in data.keys():
         # save data to database
-        pg.insert(data, "DataTable")
+        for i in range(len(data["Pressure"])):
+            data2insert = dict(DeviceID=data["DeviceID"],
+                               Pressure=data["Pressure"][i],
+                               DateTime=data["DateTime"] -
+                               i * data["Timedelta"]
+                               )
+            pg.insert(data2insert, "DataTable")
         # predict
-        IsSleeping = int(np.argmax(model.predict([data["Pressure"]])[0]))
+        # TODO
+        #data2predict = None
+        #IsSleeping = int(np.argmax(model.predict(data2predict)[0]))
+        IsSleeping = 0
     else:
         IsSleeping = 2
 
@@ -133,10 +175,10 @@ def handle(connectionSocket, socketList, SocketUserID):
         # .isoformat().split(".")[0] mean remove microsecond
         PeriodsDict.update({f"SleepingTime{i}": Periods[i][0].isoformat().split(".")[0],
                             f"WakeupTime{i}": Periods[i][1].isoformat().split(".")[0]})
-
     response = {"DeviceID": data["DeviceID"],
                 "DateTime": datetime.datetime.now().isoformat().split(".")[0],
                 "IsSleeping": IsSleeping,
+                "Hash": hash(str(PeriodsDict)) % pow(2, 32),
                 "PeriodNumber": PeriodNumber}
     response.update(PeriodsDict)
     response = json.dumps(response)
