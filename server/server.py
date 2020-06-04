@@ -27,6 +27,7 @@ def buildModel():
     inputs = tf.keras.Input(shape=(1,), name='inputs')
     x = tf.keras.layers.Dense(5, activation=None, name='dense_1')(inputs)
     x = tf.keras.layers.Dropout(0.01, name='dropout')(x)
+    x = tf.keras.layers.GRU(5)(x)
     x = tf.keras.layers.Dense(5, activation=None, name='dense_2')(x)
     outputs = tf.keras.layers.Dense(
         2, activation='softmax', name='predictions')(x)
@@ -160,11 +161,12 @@ def handle(connectionSocket, socketList, SocketUserID):
     # save and predict
     if "Pressure" in data.keys():
         # save data to database
-        for i in range(len(data["Pressure"])):
+        length = len(data["Pressure"])
+        for i in range(length):
             data2insert = dict(DeviceID=data["DeviceID"],
                                Pressure=data["Pressure"][i],
                                DateTime=data["DateTime"] -
-                               i * data["Timedelta"]
+                               (length-1-i) * data["Timedelta"]
                                )
             pg.insert(data2insert, "DataTable")
         # predict
