@@ -24,7 +24,7 @@ MODEL_NAME = "./data/" + "SmartPillowModel" + ".h5"
 
 def buildModel():
     # build the deep learning model
-    inputs = tf.keras.Input(shape=(1,), name='inputs')
+    inputs = tf.keras.Input(shape=(3000, 1), name='inputs')
     x = tf.keras.layers.Dense(5, activation=None, name='dense_1')(inputs)
     x = tf.keras.layers.Dropout(0.01, name='dropout')(x)
     x = tf.keras.layers.GRU(5)(x)
@@ -46,11 +46,16 @@ def buildModel():
                             user="postgres", password="jimpsql")
         trainData = pg.select(("Pressure", "IsSleeping"),
                               "DataTable", """ "DeviceID"=0 """ +
-                              """and "IsSleeping" in (true, false)""")
+                              """AND "IsSleeping" in (true, false)""")
         trainData = np.array(trainData)
-        trainInput = trainData.T[0]
-        trainLabel = trainData.T[1]
-        model.fit(trainInput, trainLabel, epochs=10)
+        X = []
+        y = []
+        for i in range(len(trainData) - 3000):
+            X.append(trainData[i:i+3000, 0:1])
+            y.append(trainData[i+3000, 1])
+        X = np.array(X)
+        y = np.array(y)
+        model.fit(X, y, epochs=10)
         model.save_weights(MODEL_NAME)
     return model
 
@@ -170,10 +175,17 @@ def handle(connectionSocket, socketList, SocketUserID):
                                )
             pg.insert(data2insert, "DataTable")
         # predict
-        # TODO
-        #data2predict = None
-        #IsSleeping = int(np.argmax(model.predict(data2predict)[0]))
-        IsSleeping = 0
+        DT = data["DateTime"] - datetime.timedelta(seconds=10800)
+        data2predict = pg.select("Pressure", "DataTable",
+                                 f""" "DeviceID"={data["DeviceID"]} AND """ +
+                                 f""" "DateTime">'{DT.isoformat()}' """)[-3000:]
+        data2predict = np.array([data2predict])
+        if data2predict.shape[1] < 3000:
+            data2predict = np.concatenate((
+                np.zeros((1, 3000-data2predict.shape[1], 1)),
+                data2predict
+            ), axis=1)
+        IsSleeping = int(np.argmax(model.predict(data2predict)))
     else:
         IsSleeping = 2
 

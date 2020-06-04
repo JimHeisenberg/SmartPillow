@@ -61,3 +61,6 @@ CREATE TABLE public."DataTable"
         ON UPDATE CASCADE
         ON DELETE RESTRICT
 );
+
+-- quit
+\q
