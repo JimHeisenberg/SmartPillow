@@ -28,6 +28,11 @@ ALTER USER postgres WITH PASSWORD 'jimpsql';
 sudo -u postgres psql
 # then copy, paste and run all command in SmartPillowDB.sql
 # ...
+python initDB.py
+```
+### Install python requirements
+```
+python -m pip install -r requirements.txt
 ```
 
 ## Usage
