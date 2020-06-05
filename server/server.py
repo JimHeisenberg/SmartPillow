@@ -84,15 +84,6 @@ def check(data):
     else:  # data.has_key("Timedelta"):
         data["Timedelta"] = datetime.timedelta(seconds=data["Timedelta"])
 
-    if type(data["Pressure"]) is list:
-        for value in data["Pressure"]:
-            if type(value) is not float:
-                raise Exception("""Pressure type invalid""")
-    elif type(data["Pressure"]) in (int, float):
-        data["Pressure"] = list(data["Pressure"])
-    else:
-        raise Exception("""Pressure type invalid""")
-
     UserID = pg.select("UserID", "DeviceTable",
                        f""" "DeviceID"='{data["DeviceID"]}' """)
     if UserID == []:  # NO User
