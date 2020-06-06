@@ -53,13 +53,25 @@ class HomeSearch extends React.Component {
                         </Link>
                             </Button>
                         </Col>
-                    <br/><br/><br/><br/><br/><br/><br/><br/>
+
+                    <br/>
+                    <Col style={{display: "flex", justifyContent: "center",height:"50%"}}>
+                        <Button type="primary" size="large">
+                            <Link to="/chart">
+                                <p style={{textAlign: 'center', fontSize: '1.2em', position: 'relative', top: 5}}>
+                                    Statistics</p>
+                            </Link>
+                        </Button>
+
+                    </Col>
+
+                    <br/><br/><br/><br/><br/><br/><br/>
                         <Col style={{display: "flex", justifyContent: "center",height:"50%"}}>
                             <Button type="danger" size="default"  ghost onClick={function () {
                                 localStorage.setItem('Token',"");
                                 window.location.reload();
                             }}>
-                                    <p style={{textAlign: 'center', fontSize: '1em', position: 'relative', top: 5}}>
+                                    <p style={{textAlign: 'center', fontSize: '1em'}}>
                                         Log Out</p>
                             </Button>
                         </Col>

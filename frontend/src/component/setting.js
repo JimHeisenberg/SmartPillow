@@ -2,7 +2,7 @@ import {List, Avatar, Icon, Alert,Button} from 'antd';
 import axios from 'axios';
 import ReactDOM from 'react-dom';
 import React from 'react';
-import {withRouter, Redirect} from "react-router";
+import {withRouter} from "react-router";
 import {Link} from "react-router-dom";
 
 

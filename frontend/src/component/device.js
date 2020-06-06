@@ -48,8 +48,11 @@ componentWillMount() {
                     content:
                         '',
                 });
-                _this.setState({data:true});
+                if(response.data.Data[i].DeviceID>10){
+
+                }
             }
+            _this.setState({data:true});
         } else {
             console.log('failed');
         }
@@ -113,9 +116,10 @@ return (<div><Button type="default" shape="circle" icon="arrow-left" size="large
             ]}
             extra={
                 <img
-                    width={100}
+                    width={70}
+                    style={{posision:"relative",right:"5vw"}}
                     alt="logo"
-                    src="https://ss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=2370081220,2159129501&fm=26&gp=0.jpg"
+                    src={item.description>10?"https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1591339852180&di=a092d3b9dfb06ff4dedc4d5ecca53031&imgtype=0&src=http%3A%2F%2Fimg4.imgtn.bdimg.com%2Fit%2Fu%3D3623352009%2C3220074449%26fm%3D214%26gp%3D0.jpg":"https://ss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=2370081220,2159129501&fm=26&gp=0.jpg"}
                 />
             }
         >
