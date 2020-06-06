@@ -12,6 +12,7 @@ import Device from "./component/device";
 import WrappedAddDevice from "./component/add_device";
 import Setting from "./component/setting";
 import WrappedSetTime from "./component/set_time"
+import Chart from "./component/chart";
 
 class App extends React.Component {
   render() {
@@ -24,6 +25,7 @@ class App extends React.Component {
               <Route path="/add_device" component={WrappedAddDevice}/>
               <Route path="/setting" component={Setting}/>
               <Route path="/set_time" component={WrappedSetTime}/>
+              <Route path="/chart" component={Chart}/>
           </div>
       )
   }
