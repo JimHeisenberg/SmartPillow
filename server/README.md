@@ -8,9 +8,6 @@ server对应的是后端服务器，包括处理前端服务器发来的HTTP请�
 ### Download
 ```
 git clone https://github.com/JimHeisenberg/SmartPillow.git
-# 目前未开源，不能直接下载，请使用以下指令
-# git clone https://jimheisenberg:__PASSWORD__@github.com/JimHeisenberg/SmartPillow.git
-# replace __PASSWORD__ with the real one
 ```
 ### Install PostgreSQL
 ```
