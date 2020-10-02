@@ -1,8 +1,10 @@
 import { Button } from 'antd';
+import axios from 'axios';
 import ReactDOM from 'react-dom';
 import { withRouter, Redirect } from "react-router";
 import React, { useState, useEffect } from 'react';
 import { Line } from '@ant-design/charts';
+
 function getAve(array) {
     var ave = 0;
     for (var i = 0; i < array.length; i++) {
@@ -13,86 +15,17 @@ function getAve(array) {
     return ave;
 }
 
-const Chart2 = React.FC = () => {
-    const data = [
-        {
-            date: '6/1',
-            type: '睡眠时间',
-            value: 6.4,
-        },
-        {
-            date: '6/1',
-            type: '翻身次数',
-            value: 11,
-        },
-        {
-            date: '6/2',
-            type: '睡眠时间',
-            value: 8,
-        },
-        {
-            date: '6/2',
-            type: '翻身次数',
-            value: 14,
-        },
-        {
-            date: '6/3',
-            type: '睡眠时间',
-            value: 7.6,
-        },
-        {
-            date: '6/3',
-            type: '翻身次数',
-            value: 11,
-        },
-        {
-            date: '6/4',
-            type: '睡眠时间',
-            value: 8.7,
-        },
-        {
-            date: '6/4',
-            type: '翻身次数',
-            value: 9,
-        },
-        {
-            date: '6/5',
-            type: '睡眠时间',
-            value: 5.9,
-        },
-        {
-            date: '6/5',
-            type: '翻身次数',
-            value: 11,
-        },
-        {
-            date: '6/6',
-            type: '睡眠时间',
-            value: 5.6,
-        },
-        {
-            date: '6/6',
-            type: '翻身次数',
-            value: 15,
-        },
-        {
-            date: '6/7',
-            type: '睡眠时间',
-            value: 9.3,
-        },
-        {
-            date: '6/7',
-            type: '翻身次数',
-            value: 5,
-        },
-    ];
-
+const Chart2 = React.FC = ({data}) => {
     var ava = 0;
     var arr = [];
-    var best_date = "6/7";
+    var best_score = 0;
+    var best_score_date = "";
     data.forEach(i => {
         if (i.type == '睡眠时间') {
             arr.push(i.value);
+            if (i.value > best_score) {
+                best_score_date = i.date
+            }
         }
     });
     ava = getAve(arr);
@@ -121,10 +54,32 @@ const Chart2 = React.FC = () => {
         <div style={{ position: "relative", top: "5vh" }}><Line {...config} /></div>
         <div style={{ position: "relative", top: "5vh", margin: "30px" }}>人只有在浅睡眠的时候才会翻身,翻身次数和睡眠时间可以大致反应一个人的睡眠质量如何</div>
         <h3 style={{ position: "relative", top: "5vh", margin: "30px" }}>您本周的平均睡眠时间:{ava}</h3>
-        <h3 style={{ position: "relative", top: "5vh", margin: "30px" }}>您本周睡眠质量最好的一天:{best_date}</h3>
+        <h3 style={{ position: "relative", top: "5vh", margin: "30px" }}>您本周睡眠质量最好的一天:{best_score_date}</h3>
     </div>;
 };
 class Chart extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            data: []
+        }
+    }
+    componentWillMount() {
+        const _this = this;
+        axios.post('api/chart', { "Action": "select", "Token": localStorage.getItem('Token') }, { headers: { 'Content-Type': 'application/json' } }).then(function (response) {
+            if (response.data.Data) {
+                _this.setState({ data: response.data.Data });
+            } else {
+                console.log('fetching chart data failed');
+            }
+        }).catch(error => {
+            if (error.response)
+                if (error.response.status === 401) {
+                    console.log(401)
+                }
+        });
+    }
+
     render() {
         return (
             <div>
@@ -138,7 +93,7 @@ class Chart extends React.Component {
                         }
                     }>
                 </Button>
-                <Chart2 />
+                <Chart2 data={this.state.data} />
             </div>);
     }
 }
