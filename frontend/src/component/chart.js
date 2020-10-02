@@ -1,19 +1,19 @@
-import {Button} from 'antd';
+import { Button } from 'antd';
 import ReactDOM from 'react-dom';
-import {withRouter, Redirect} from "react-router";
+import { withRouter, Redirect } from "react-router";
 import React, { useState, useEffect } from 'react';
 import { Line } from '@ant-design/charts';
-function getAve(array){
-    var ave=0;
-    for(var i=0;i<array.length;i++){
-        ave+=array[i];
+function getAve(array) {
+    var ave = 0;
+    for (var i = 0; i < array.length; i++) {
+        ave += array[i];
     }
-    ave/=i;
-ave=ave.toFixed(1);
-    return ave;
+    ave /= i;
+    ave = ave.toFixed(1);
+    return ave;
 }
 
-const Chart2=React.FC = () => {
+const Chart2 = React.FC = () => {
     const data = [
         {
             date: '6/1',
@@ -87,15 +87,15 @@ const Chart2=React.FC = () => {
         },
     ];
 
-    var ava=0;
-    var arr=[];
-    var best_date="6/7";
-    data.forEach(i=>{
-        if(i.type=='睡眠时间'){
+    var ava = 0;
+    var arr = [];
+    var best_date = "6/7";
+    data.forEach(i => {
+        if (i.type == '睡眠时间') {
             arr.push(i.value);
         }
     });
-    ava=getAve(arr);
+    ava = getAve(arr);
     const config = {
         title: {
             visible: true,
@@ -118,24 +118,28 @@ const Chart2=React.FC = () => {
         smooth: true,
     };
     return <div>
-        <div style={{position:"relative",top:"5vh"}}><Line {...config} /></div>
-        <div style={{position:"relative",top:"5vh",margin:"30px"}}>人只有在浅睡眠的时候才会翻身,翻身次数和睡眠时间可以大致反应一个人的睡眠质量如何</div>
-        <h3 style={{position:"relative",top:"5vh",margin:"30px"}}>您本周的平均睡眠时间:{ava}</h3>
-        <h3 style={{position:"relative",top:"5vh",margin:"30px"}}>您本周睡眠质量最好的一天:{best_date}</h3>
+        <div style={{ position: "relative", top: "5vh" }}><Line {...config} /></div>
+        <div style={{ position: "relative", top: "5vh", margin: "30px" }}>人只有在浅睡眠的时候才会翻身,翻身次数和睡眠时间可以大致反应一个人的睡眠质量如何</div>
+        <h3 style={{ position: "relative", top: "5vh", margin: "30px" }}>您本周的平均睡眠时间:{ava}</h3>
+        <h3 style={{ position: "relative", top: "5vh", margin: "30px" }}>您本周睡眠质量最好的一天:{best_date}</h3>
     </div>;
 };
-class Chart extends React.Component{
-    render(){
-        return (<div><Button type="default" shape="circle" icon="arrow-left" size="large"
-                             style={{position: "relative", left: "2vw", top: "1vh"}}
-                             onClick={
-                                 () => {
-                                     this.props.history.push({
-                                         pathname: "/"
-                                     });
-                                 }
-                             }>
-        </Button><Chart2/></div>);
+class Chart extends React.Component {
+    render() {
+        return (
+            <div>
+                <Button type="default" shape="circle" icon="arrow-left" size="large"
+                    style={{ position: "relative", left: "2vw", top: "1vh" }}
+                    onClick={
+                        () => {
+                            this.props.history.push({
+                                pathname: "/"
+                            });
+                        }
+                    }>
+                </Button>
+                <Chart2 />
+            </div>);
     }
 }
 export default withRouter(Chart);
