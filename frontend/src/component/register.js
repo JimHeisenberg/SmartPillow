@@ -12,12 +12,12 @@ import {
     AutoComplete, Alert,
 } from 'antd';
 import React from 'react';
-import {Link, withRouter} from 'react-router-dom';
+import { Link, withRouter } from 'react-router-dom';
 import axios from 'axios';
 import ReactDOM from "react-dom";
 
 
-const {Option} = Select;
+const { Option } = Select;
 const AutoCompleteOption = AutoComplete.Option;
 
 
@@ -36,20 +36,20 @@ class RegistrationForm extends React.Component {
                 axios.post("/api/register", {
                     UserName: values.nickname,
                     Password: values.password,
-                },{headers: {'Content-Type': 'application/json'}}).then(response => {
-                    if (response.status===200) {
-                        _this.props.history.push({pathname: "/login"});
+                }, { headers: { 'Content-Type': 'application/json' } }).then(response => {
+                    if (response.status === 200) {
+                        _this.props.history.push({ pathname: "/login" });
                     }
                 }).catch(err => {
                     if (err.response) {
                         // console.log(err.response);
                         if (err.response.data.msg === "username used") {
                             ReactDOM.render(<Alert type="error"
-                                                   message="Username used"/>, document.getElementById("alert"))
+                                message="Username used" />, document.getElementById("alert"))
                         }
                         if (err.response.data.msg === "you bad guy") {
                             ReactDOM.render(<Alert type="error"
-                                                   message="Wrong code"/>, document.getElementById("alert"))
+                                message="Wrong code" />, document.getElementById("alert"))
 
                         } else {
                             console.log(err);
@@ -62,12 +62,12 @@ class RegistrationForm extends React.Component {
     };
 
     handleConfirmBlur = e => {
-        const {value} = e.target;
-        this.setState({confirmDirty: this.state.confirmDirty || !!value});
+        const { value } = e.target;
+        this.setState({ confirmDirty: this.state.confirmDirty || !!value });
     };
 
     compareToFirstPassword = (rule, value, callback) => {
-        const {form} = this.props;
+        const { form } = this.props;
         if (value && value !== form.getFieldValue('password')) {
             callback('Two passwords that you enter is inconsistent!');
         } else {
@@ -76,9 +76,9 @@ class RegistrationForm extends React.Component {
     };
 
     validateToNextPassword = (rule, value, callback) => {
-        const {form} = this.props;
+        const { form } = this.props;
         if (value && this.state.confirmDirty) {
-            form.validateFields(['confirm'], {force: true});
+            form.validateFields(['confirm'], { force: true });
         }
         callback();
     };
@@ -90,21 +90,21 @@ class RegistrationForm extends React.Component {
         } else {
             autoCompleteResult = ['.com', '.org', '.net'].map(domain => `${value}${domain}`);
         }
-        this.setState({autoCompleteResult});
+        this.setState({ autoCompleteResult });
     };
 
     render() {
-        const {getFieldDecorator} = this.props.form;
-        const {autoCompleteResult} = this.state;
+        const { getFieldDecorator } = this.props.form;
+        const { autoCompleteResult } = this.state;
 
         const formItemLayout = {
             labelCol: {
-                xs: {span: 24},
-                sm: {span: 8},
+                xs: { span: 24 },
+                sm: { span: 8 },
             },
             wrapperCol: {
-                xs: {span: 24},
-                sm: {span: 16},
+                xs: { span: 24 },
+                sm: { span: 16 },
             },
         };
         const tailFormItemLayout = {
@@ -122,7 +122,7 @@ class RegistrationForm extends React.Component {
         const prefixSelector = getFieldDecorator('prefix', {
             initialValue: '86',
         })(
-            <Select style={{width: 70}}>
+            <Select style={{ width: 70 }}>
                 <Option value="86">+86</Option>
                 <Option value="87">+87</Option>
             </Select>,
@@ -134,23 +134,23 @@ class RegistrationForm extends React.Component {
 
         return (
             <div>
-                <Link to={{pathname: '/'}}>
+                <Link to={{ pathname: '/' }}>
                     <Button type="default" shape="circle" icon="arrow-left" size="large"
-                            style={{position: "relative", left: "2vw", top: "1vh"}}>
+                        style={{ position: "relative", left: "2vw", top: "1vh" }}>
                     </Button>
                 </Link>
                 <Form {...formItemLayout} onSubmit={this.handleSubmit}
-                      style={{position: "relative", top: "5vh", left: "10vw", right: "10vw", maxWidth: "80vw"}}>
+                    style={{ position: "relative", top: "5vh", left: "10vw", right: "10vw", maxWidth: "80vw" }}>
                     <Form.Item
                         label={
                             <span>
-              Username&nbsp;
+                                Username&nbsp;
             </span>
                         }
                     >
                         {getFieldDecorator('nickname', {
-                            rules: [{required: true, message: 'Please input your nickname!', whitespace: true}],
-                        })(<Input/>)}
+                            rules: [{ required: true, message: 'Please input your nickname!', whitespace: true }],
+                        })(<Input />)}
                     </Form.Item>
                     <Form.Item label="Password" hasFeedback>
                         {getFieldDecorator('password', {
@@ -163,7 +163,7 @@ class RegistrationForm extends React.Component {
                                     validator: this.validateToNextPassword,
                                 },
                             ],
-                        })(<Input.Password/>)}
+                        })(<Input.Password />)}
                     </Form.Item>
                     <Form.Item label="Confirm Password" hasFeedback>
                         {getFieldDecorator('confirm', {
@@ -176,7 +176,7 @@ class RegistrationForm extends React.Component {
                                     validator: this.compareToFirstPassword,
                                 },
                             ],
-                        })(<Input.Password onBlur={this.handleConfirmBlur}/>)}
+                        })(<Input.Password onBlur={this.handleConfirmBlur} />)}
                     </Form.Item>
 
                     {/*<Form.Item label="Phone Number">*/}
@@ -204,12 +204,12 @@ class RegistrationForm extends React.Component {
                     </Form.Item>
 
                 </Form>
-                <div id="alert" style={{position: "relative", top: "2.5vh"}}/>
+                <div id="alert" style={{ position: "relative", top: "2.5vh" }} />
             </div>
         );
     }
 }
 
-const WrappedRegistrationForm = Form.create({name: 'register'})(RegistrationForm);
+const WrappedRegistrationForm = Form.create({ name: 'register' })(RegistrationForm);
 
 export default withRouter(WrappedRegistrationForm);
