@@ -19,7 +19,7 @@ extern __IO uint32_t TimeDisplay;
 extern __IO uint32_t TimeAlarm;
 extern __IO uint16_t ADC_ConvertedValue;
 
-char *WIFI_NAME = "JIM-MIX2S";
+char *WIFI_NAME = "JIM-R7000III";
 char *WIFI_PASSWORD = "JimHotspot";
 char *SERVER_IP = "175.24.76.61";
 int SERVER_PORT = 54321;
