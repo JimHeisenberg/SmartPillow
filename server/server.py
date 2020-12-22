@@ -2,6 +2,7 @@ import sys
 import os
 import json
 import socket
+import time
 import datetime
 import tensorflow as tf
 import numpy as np
@@ -212,6 +213,7 @@ if __name__ == "__main__":
     socketList = []
 
     while True:
+        time.sleep(0.1)
         try:
             # receive data
             connectionSocket, addr = serverSocket.accept()
