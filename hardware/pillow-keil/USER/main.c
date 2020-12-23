@@ -39,6 +39,7 @@ uint32_t ClockTable[3] = {0xffffffff, 0xffffffff, 0xffffffff}; //最多三个闹钟
 uint32_t *CurrentClock;
 
 // function declaration
+void GPIO_VCC_GND_Config(void);
 void SendJson(float *data);
 
 //【*】注意事项：
@@ -93,6 +94,7 @@ int main()
     // BEEP init
     BEEP_GPIO_Config();
     BEEP(BEEP_OFF);
+		GPIO_VCC_GND_Config();
 		LED_GPIO_Config(); //LED 端口初始化 
 		LED1(LED_ON);
 
@@ -161,6 +163,47 @@ int main()
             datacount = 0;
         }
     }
+}
+
+void GPIO_VCC_GND_Config(void)	
+{
+	  // pressure sensor: PA1-AO PA2-GND PA3-VCC
+	  // beep: PB3-VCC PB4-MOT PB5-LED PB6-GND
+	  // ESP8266: PA9-RX PA10-TX PA11-VCC PA12-GND
+    RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOA, ENABLE); // 使能PC端口时钟  
+    RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOB, ENABLE); // 使能PC端口时钟  
+    RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOC, ENABLE); // 使能PC端口时钟  
+    GPIO_InitTypeDef GPIO_InitStructure;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+		// init PA2-GND
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2;	//选择对应的引脚
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
+    GPIO_ResetBits(GPIOA, GPIO_Pin_2 );
+		// init PA3-VCC
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3;	//选择对应的引脚
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
+    GPIO_SetBits(GPIOA, GPIO_Pin_3 );
+		// init PB3-VCC
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3;	//选择对应的引脚
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
+    GPIO_SetBits(GPIOB, GPIO_Pin_3 );
+		// init PB5-LED
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5;	//选择对应的引脚
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
+    GPIO_SetBits(GPIOB, GPIO_Pin_5 );
+		// init PB6-GND
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6;	//选择对应的引脚
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
+    GPIO_ResetBits(GPIOB, GPIO_Pin_6 );
+		// init PA11-VCC
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_11;	//选择对应的引脚
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
+    GPIO_SetBits(GPIOA, GPIO_Pin_11 );
+		// init PA12-GND
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12;	//选择对应的引脚
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
+    GPIO_ResetBits(GPIOA, GPIO_Pin_12 );
 }
 
 void SendJson(float *data)
