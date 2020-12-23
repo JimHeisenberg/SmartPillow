@@ -92,9 +92,9 @@ int main()
 
     // BEEP init
     BEEP_GPIO_Config();
-    BEEP(OFF);
+    BEEP(BEEP_OFF);
 		LED_GPIO_Config(); //LED 端口初始化 
-		LED1( ON);
+		LED1(LED_ON);
 
 //    // USART for ESP8266 init
     USART_Config();
@@ -102,7 +102,7 @@ int main()
     ESP8266_Init(WIFI_NAME, WIFI_PASSWORD, SERVER_IP, SERVER_PORT);
     USART_ITConfig(DEBUG_USARTx, USART_IT_RXNE | USART_IT_IDLE, ENABLE); //重新打开中断
 
-		LED1(OFF);	
+		LED1(LED_OFF);	
     // hardware init done
 
     time = 0;
@@ -133,7 +133,7 @@ int main()
 								databuf[i] = 0;
 							datacount = 0;
 							head = 0;
-							BEEP(OFF);
+							BEEP(BEEP_OFF);
             }
 						// 本地滤波算法 end
         }
@@ -143,7 +143,7 @@ int main()
             TimeAlarm = 0;
 						if (head == 1)
 						{
-							BEEP(ON);
+							BEEP(BEEP_ON);
 						}
 					  ClockSchedule();
         }

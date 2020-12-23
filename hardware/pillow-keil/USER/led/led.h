@@ -7,8 +7,8 @@
  * 1 - off
  - 0 - on
  */
-#define ON  0
-#define OFF 1
+#define LED_ON  0
+#define LED_OFF 1
 
 #define LED1(a)	if (a)	\
 					GPIO_SetBits(GPIOC,GPIO_Pin_13);\
