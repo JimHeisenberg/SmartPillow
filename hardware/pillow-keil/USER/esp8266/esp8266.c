@@ -22,7 +22,7 @@ void ESP8266_Init(char*WIFI_NAME,char* WIFI_PASSWORD,char* SERVER_IP,int SERVER_
         for(time=0;time<500;);
         // WiFi name and password
         printf("AT+CWJAP=\"%s\",\"%s\"\r\n",WIFI_NAME,WIFI_PASSWORD);
-        for(time=0;time<7000;);
+        for(time=0;time<9000;);
         // 175.24.76.61 JimHeisenberg.xyz
       //printf("AT+CIPSTART=\"TCP\",\"192.168.15.81\",54321\r\n");
         printf("AT+CIPSTART=\"TCP\",\"%s\",%d\r\n", SERVER_IP, SERVER_PORT );
