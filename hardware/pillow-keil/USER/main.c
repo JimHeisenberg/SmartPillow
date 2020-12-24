@@ -145,12 +145,12 @@ int main()
 						{
 							BEEP(BEEP_ON);
 						}
-					  ClockSchedule();
         }
         if (ReceiveState == 1)
         {
             ReceiveState = 0;
             ESP8266_ReceiveData(aRxBuffer);
+					  ClockSchedule();
         }
         //20*1000ms,20s一次向服务器发送
         if (datacount == 40)

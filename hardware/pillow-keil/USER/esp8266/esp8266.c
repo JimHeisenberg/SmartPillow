@@ -77,7 +77,7 @@ void ESP8266_ReceiveData(char *data){
                     }
                     SetClockTable(TheClock,i);
                 }
-                ClockSchedule();
+                //ClockSchedule();
             }
         }
     }
