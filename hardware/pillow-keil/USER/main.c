@@ -166,7 +166,7 @@ int main()
 void GPIO_VCC_GND_Config(void)	
 {
 	  // pressure sensor: PA1-AO PA2-GND PA3-VCC
-	  // beep: PB3-VCC PB4-MOT PB5-LED PB6-GND
+	  // beep: PB5-VCC PB6-MOT PB7-LED PB8-GND
 	  // ESP8266: PA9-RX PA10-TX PA11-VCC PA12-GND
     RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOA, ENABLE); // 使能PC端口时钟  
     RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOB, ENABLE); // 使能PC端口时钟  
@@ -182,18 +182,18 @@ void GPIO_VCC_GND_Config(void)
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3;	//选择对应的引脚
     GPIO_Init(GPIOA, &GPIO_InitStructure);
     GPIO_SetBits(GPIOA, GPIO_Pin_3 );
-		// init PB3-VCC
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3;	//选择对应的引脚
-    GPIO_Init(GPIOB, &GPIO_InitStructure);
-    GPIO_SetBits(GPIOB, GPIO_Pin_3 );
-		// init PB5-LED
+		// init PB5-VCC
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5;	//选择对应的引脚
     GPIO_Init(GPIOB, &GPIO_InitStructure);
     GPIO_SetBits(GPIOB, GPIO_Pin_5 );
-		// init PB6-GND
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6;	//选择对应的引脚
+		// init PB7-LED
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_7;	//选择对应的引脚
     GPIO_Init(GPIOB, &GPIO_InitStructure);
-    GPIO_ResetBits(GPIOB, GPIO_Pin_6 );
+    GPIO_SetBits(GPIOB, GPIO_Pin_7 );
+		// init PB8-GND
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8;	//选择对应的引脚
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
+    GPIO_ResetBits(GPIOB, GPIO_Pin_8 );
 		// init PA11-VCC
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_11;	//选择对应的引脚
     GPIO_Init(GPIOA, &GPIO_InitStructure);

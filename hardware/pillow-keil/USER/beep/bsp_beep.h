@@ -8,7 +8,7 @@
 /* 定义蜂鸣器连接的GPIO端口, 用户只需要修改下面的代码即可改变控制的蜂鸣器引脚 */
 #define BEEP_GPIO_PORT    	GPIOB			              /* GPIO端口 */
 #define BEEP_GPIO_CLK 	    RCC_APB2Periph_GPIOB		/* GPIO端口时钟 */
-#define BEEP_GPIO_PIN		    GPIO_Pin_4			        /* 连接到蜂鸣器的GPIO */
+#define BEEP_GPIO_PIN		    GPIO_Pin_6			        /* 连接到蜂鸣器的GPIO */
 
 /* 高电平时，蜂鸣器响 */
 #define BEEP_ON  1
