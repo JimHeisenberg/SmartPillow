@@ -52,18 +52,15 @@ void ESP8266_ReceiveData(char *data){
         for(int i=0;'0'<*point&&*point<'9';i++){
             hashtemp[i]=*point++;//考虑到int32的位数，暂时不做溢出出错处理
         }
+				if((point=FindStringValue(data,"DateTime"))!=NULL){
+						int i = 0;
+						while(*point!='"')TheDate[i++] = *point++;
+						TheDate[i]=0;
+						SetTimeByXML(TheDate);
+				}
         hash = atoi(hashtemp);
         if(version!=hash){
             version = hash;
-            if((point=FindStringValue(data,"DateTime"))!=NULL){
-                int i = 0;
-                while(*point!='"')TheDate[i++] = *point++;
-                TheDate[i]=0;
-							
-            //printf("TheData:%s\n",TheDate);
-							SetTimeByXML(TheDate);
-            }
-            
             ClearClockTable();
             if((point=FindValue(data,"PeriodNumber"))!=NULL){
                 count = *point-'0';//i必须小于10
