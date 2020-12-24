@@ -549,7 +549,7 @@ void SetClockTable(char* clock,int unit){
 }
 
 void ClockSchedule(){
-	uint32_t timeNow = RTC_GetCounter()+TIME_ZOOM;
+	uint32_t timeNow = RTC_GetCounter();
 	for (int i=0; i<3; i++){
 		while(ClockTable[i] < timeNow)
 		{
