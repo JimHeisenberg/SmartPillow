@@ -83,29 +83,27 @@ int main()
     /*设置闹钟寄存器*/
     //注意：设置闹钟寄存器之后对可编程计数器更改需要同步,可以重设一次闹钟来解决问题
     //北京时间比标准时间晚八个小时
-	/*
+	  /*
     clock_timestamp = mktimev(&clocktime) - TIME_ZOOM;
     RTC_SetAlarm(clock_timestamp);
     RTC_WaitForLastTask();
-*/
+    */
     // pressure infomation is from adc
     ADCx_Init();
 
     // BEEP init
     BEEP_GPIO_Config();
-    BEEP(BEEP_OFF);
-		GPIO_VCC_GND_Config();
 		LED_GPIO_Config(); //LED 端口初始化 
+		GPIO_VCC_GND_Config();
+		
 		LED1(LED_ON);
-
-//    // USART for ESP8266 init
+    // USART for ESP8266 init
     USART_Config();
     USART_ITConfig(DEBUG_USARTx, USART_IT_RXNE | USART_IT_IDLE, DISABLE); //先关闭中断，防止8266的初始化信息导致混乱
     ESP8266_Init(WIFI_NAME, WIFI_PASSWORD, SERVER_IP, SERVER_PORT);
     USART_ITConfig(DEBUG_USARTx, USART_IT_RXNE | USART_IT_IDLE, ENABLE); //重新打开中断
-
-		LED1(LED_OFF);	
     // hardware init done
+		LED1(LED_OFF);	
 
     time = 0;
     while (1)
