@@ -145,9 +145,9 @@ def handle(connectionSocket, socketList, SocketUserID):
     except Exception as e:
         socketList.remove([SocketUserID, connectionSocket])
         try:
-            connectionSocket.send(str(e).encode())
             print(
                 f"connection socket close: {connectionSocket.getpeername()}", flush=True)
+            connectionSocket.send(str(e).encode())
         except:
             # connectionSocket is already closed
             pass
