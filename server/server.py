@@ -7,6 +7,7 @@ import datetime
 import tensorflow as tf
 import numpy as np
 import sql
+import schedule
 
 
 pg = sql.PostgreSQL(database="SmartPillowDB",

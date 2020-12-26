@@ -12,6 +12,8 @@ CREATE SEQUENCE public."DeviceTable_DeviceID_seq";
 CREATE SEQUENCE public."DeviceTable_UserID_seq";
 CREATE SEQUENCE public."DataTable_DataID_seq";
 CREATE SEQUENCE public."DataTable_DeviceID_seq";
+CREATE SEQUENCE public."TurnTable_UserID_seq";
+CREATE SEQUENCE public."SleepingTable_UserID_seq";
 
 CREATE TABLE public."UserTable"
 (
@@ -60,6 +62,30 @@ CREATE TABLE public."DataTable"
         REFERENCES public."DeviceTable" ("DeviceID") MATCH SIMPLE
         ON UPDATE CASCADE
         ON DELETE RESTRICT
+);
+
+CREATE TABLE public."TurnTable"
+(
+    "UserID" integer NOT NULL DEFAULT nextval('"TurnTable_UserID_seq"'::regclass),
+    "DateTime" date,
+    "TurnCount" integer,
+    CONSTRAINT "TurnTable_pkey" PRIMARY KEY ("UserID"),
+    CONSTRAINT "TurnTable_UserID_fkey" FOREIGN KEY ("UserID")
+    REFERENCES public."UserTable" ("UserID") MATCH SIMPLE
+    ON UPDATE CASCADE
+    ON DELETE RESTRICT
+);
+
+CREATE TABLE public."SleepingTable"
+(
+    "UserID" integer NOT NULL DEFAULT nextval('"SleepingTable_UserID_seq"'::regclass),
+    "DateTime" date,
+    "SleepTime" double precision,
+    CONSTRAINT "SleepingTable_pkey" PRIMARY KEY ("UserID"),
+    CONSTRAINT "SleepingTable_UserID_fkey" FOREIGN KEY ("UserID")
+    REFERENCES public."UserTable" ("UserID") MATCH SIMPLE
+    ON UPDATE CASCADE
+    ON DELETE RESTRICT
 );
 
 -- quit

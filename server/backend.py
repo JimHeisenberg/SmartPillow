@@ -86,6 +86,64 @@ def login():
     except:
         abort(401)
 
+@app.route("/chart", method=["POST"])
+def chart():
+    """
+    post jsonData to backend
+    jsonData = {"UserName":str,"date":long}
+    return a json data
+    if success return {"Data": list of {"date", "type", "value}}
+    else abort http 500
+    """
+    def check(data):
+        for key in data.keys():
+            if key not in ["UserName", "date"]:
+                raise Exception(
+                    """key not in ["UserName", "date"]""")
+        return data
+
+
+    def selectTrun(UserID, date):
+        TurnInfo = pg.select(("DateTime", "TurnCount"), "TurnTable",
+                                f""" "UserID"='{UserID}' AND "DateTime" BETWEEN '{date - 7}' AND {date} """)
+        Data = []
+        for Turn in TurnInfo:
+            DateTime, TurnCount = Turn
+            res = {"date": DateTime,
+                   "type": "翻身次数",
+                   "value": TurnCount
+                   }
+            Data.append(res)
+        return Data
+
+    def selectSleepingTime(UserID, date):
+        SleepInfos = pg.select(("DateTime", "SleepTime"), "SleepingTable",
+                                f""" "UserID"='{UserID}' AND "DateTime" BETWEEN '{date - 7}' AND {date} """)
+        Data = []
+        for SleepInfo in SleepInfos:
+            DateTime, SleepingTime = SleepInfo
+            res = {"date": DateTime,
+                   "type": "睡眠时间",
+                   "value": SleepingTime
+                   }
+            Data.append(res)
+            return Data
+
+    try:
+        data = request.get_json()
+        data = check(data)
+        UserName = data["UserName"].lower()
+        date = data["date"]
+        UserID = pg.select(("UserID"), "UserTable",
+                           f""" "UserName"='{UserName}' """)[0][0]
+        res = []
+        res.append(selectTrun(UserID, date))
+        res.append(selectSleepingTime(UserID, date))
+        return {"Data": res}
+
+    except:
+        abort(401)
+
 
 @app.route("/register", methods=["POST"])
 def register():
