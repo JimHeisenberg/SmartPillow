@@ -7,7 +7,7 @@ import datetime
 import tensorflow as tf
 import numpy as np
 import sql
-
+import schedule
 
 pg = sql.PostgreSQL(database="SmartPillowDB",
                     user="postgres", password="jimpsql")
@@ -52,8 +52,8 @@ def buildModel():
         X = []
         y = []
         for i in range(len(trainData) - 3000):
-            X.append(trainData[i:i+3000, 0:1])
-            y.append(trainData[i+3000, 1])
+            X.append(trainData[i:i + 3000, 0:1])
+            y.append(trainData[i + 3000, 1])
         X = np.array(X)
         y = np.array(y)
         model.fit(X, y, epochs=10)
@@ -163,7 +163,7 @@ def handle(connectionSocket, socketList, SocketUserID):
             data2insert = dict(DeviceID=data["DeviceID"],
                                Pressure=data["Pressure"][i],
                                DateTime=data["DateTime"] -
-                               (length-1-i) * data["Timedelta"]
+                                        (length - 1 - i) * data["Timedelta"]
                                )
             pg.insert(data2insert, "DataTable")
         # predict
@@ -174,7 +174,7 @@ def handle(connectionSocket, socketList, SocketUserID):
         data2predict = np.array([data2predict])
         if data2predict.shape[1] < 3000:
             data2predict = np.concatenate((
-                np.zeros((1, 3000-data2predict.shape[1], 1)),
+                np.zeros((1, 3000 - data2predict.shape[1], 1)),
                 data2predict
             ), axis=1)
         IsSleeping = int(np.argmax(model.predict(data2predict)))
@@ -202,6 +202,55 @@ def handle(connectionSocket, socketList, SocketUserID):
     reply(response, socketList, UserID)
 
 
+def jobSleepTime():
+    def time2sec(y):
+        '''
+        时间类型时分秒转换成秒
+        '''
+        h = y.hour  # 直接用datetime.time模块内置的方法，得到时、分、秒
+        m = y.minute
+        s = y.second
+        return int(h) * 3600 + int(m) * 60 + int(s)  # int()函数转换成整数运算
+
+    TimeInfos = pg.select(("UserId", "WakeupTime", "SleepingTime"), "TimeTable")
+    for TimeInfo in TimeInfos:
+        userId, wakeupTime, sleepingTime = TimeInfo
+        wakeupSecond = time2sec(wakeupTime)
+        sleepingSecond = time2sec(sleepingTime)
+        if wakeupSecond < sleepingSecond:
+            timeDiff = wakeupSecond - sleepingSecond + 86400
+        else:
+            timeDiff = wakeupSecond - sleepingSecond
+        pg.insert({"UserId": userId, "date": datetime.date.isoformat(), "SleepTime": timeDiff}, "SleepingTable")
+
+
+def jobTurn():
+    enable = 1
+    TurnInfos = pg.select(("DeviceID", "IsSleeping"), "DataTable",
+                          f""" "enable"='{enable}' """)
+    for TurnInfo in TurnInfos:
+        deviceId, isSleeping = TurnInfo
+        userId = pg.select("UserId", "DeviceTable",
+                           f''' "DeviceID" = '{deviceId}' ''')
+        dict[userId] = 0
+
+    for TurnInfo in TurnInfos:
+        deviceId, isSleeping = TurnInfo
+        userId = pg.select("UserId", "DeviceTable",
+                           f''' "DeviceID" = '{deviceId}' ''')
+        if isSleeping:
+            sleepCnt = sleepCnt + 1
+        else:
+            wakeCnt = wakeCnt + 1
+        res = min(sleepCnt, wakeCnt)
+        dict[userId] = dict[userId] + res
+
+    for id in dict.keys():
+        pg.insert({"UserId": id, "date": datetime.date.isoformat(), "TurnCount": dict[id]}, "TurnTable")
+
+    pg.update({"enable": 0}, "DataTable")
+
+
 if __name__ == "__main__":
     serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     serverSocket.bind((HOST, SERVER_PORT))
@@ -213,7 +262,11 @@ if __name__ == "__main__":
     socketList = []
 
     while True:
+        schedule.every().day.at("11:00").do(jobSleepTime())
+        schedule.every().day.at("11:00").do(jobTurn())
         time.sleep(0.1)
+        schedule.run_pending()
+        schedule
         try:
             # receive data
             connectionSocket, addr = serverSocket.accept()
