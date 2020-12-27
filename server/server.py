@@ -8,10 +8,7 @@ import tensorflow as tf
 import numpy as np
 import sql
 import schedule
-<<<<<<< HEAD
-=======
 
->>>>>>> 9cb999076b1a819382c607fd1b1ca5ca97f1814a
 
 pg = sql.PostgreSQL(database="SmartPillowDB",
                     user="postgres", password="jimpsql")
@@ -216,7 +213,7 @@ def jobSleepTime():
         s = y.second
         return int(h) * 3600 + int(m) * 60 + int(s)  # int()函数转换成整数运算
 
-    TimeInfos = pg.select(("UserId", "WakeupTime", "SleepingTime"), "TimeTable")
+    TimeInfos = pg.select(("UserID", "WakeupTime", "SleepingTime"), "TimeTable")
     for TimeInfo in TimeInfos:
         userId, wakeupTime, sleepingTime = TimeInfo
         wakeupSecond = time2sec(wakeupTime)
@@ -225,7 +222,7 @@ def jobSleepTime():
             timeDiff = wakeupSecond - sleepingSecond + 86400
         else:
             timeDiff = wakeupSecond - sleepingSecond
-        pg.insert({"UserId": userId, "date": datetime.date.isoformat(), "SleepTime": timeDiff}, "SleepingTable")
+        pg.insert({"UserID": userId, "date": datetime.date.isoformat(), "SleepTime": timeDiff}, "SleepingTable")
 
 
 def jobTurn():
@@ -234,13 +231,13 @@ def jobTurn():
                           f""" "enable"='{enable}' """)
     for TurnInfo in TurnInfos:
         deviceId, isSleeping = TurnInfo
-        userId = pg.select("UserId", "DeviceTable",
+        userId = pg.select("UserID", "DeviceTable",
                            f''' "DeviceID" = '{deviceId}' ''')
         dict[userId] = 0
 
     for TurnInfo in TurnInfos:
         deviceId, isSleeping = TurnInfo
-        userId = pg.select("UserId", "DeviceTable",
+        userId = pg.select("UserID", "DeviceTable",
                            f''' "DeviceID" = '{deviceId}' ''')
         if isSleeping:
             sleepCnt = sleepCnt + 1
@@ -250,7 +247,7 @@ def jobTurn():
         dict[userId] = dict[userId] + res
 
     for id in dict.keys():
-        pg.insert({"UserId": id, "date": datetime.date.isoformat(), "TurnCount": dict[id]}, "TurnTable")
+        pg.insert({"UserID": id, "date": datetime.date.isoformat(), "TurnCount": dict[id]}, "TurnTable")
 
     pg.update({"enable": 0}, "DataTable")
 
@@ -270,7 +267,6 @@ if __name__ == "__main__":
         schedule.every().day.at("11:00").do(jobTurn())
         time.sleep(0.1)
         schedule.run_pending()
-        schedule
         try:
             # receive data
             connectionSocket, addr = serverSocket.accept()
