@@ -8,6 +8,10 @@ import tensorflow as tf
 import numpy as np
 import sql
 import schedule
+<<<<<<< HEAD
+=======
+
+>>>>>>> 9cb999076b1a819382c607fd1b1ca5ca97f1814a
 
 pg = sql.PostgreSQL(database="SmartPillowDB",
                     user="postgres", password="jimpsql")
