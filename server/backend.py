@@ -7,7 +7,6 @@ from flask import Flask, current_app, request, abort
 from itsdangerous import BadData, TimedJSONWebSignatureSerializer as Serializer
 import sql
 
-
 pg = sql.PostgreSQL(database="SmartPillowDB",
                     user="postgres", password="jimpsql")
 if "MSC" in sys.version:
@@ -17,7 +16,6 @@ elif "GCC" in sys.version:
 else:
     HOST = "localhost"
 SERVER_PORT = 12345
-
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'SmartPillowProject'
@@ -62,6 +60,7 @@ def login():
     if success return {"Token":token}
     else abort http 500
     """
+
     def check(data):
         for key in data.keys():
             if key not in ["UserName", "Password"]:
@@ -86,6 +85,7 @@ def login():
     except:
         abort(401)
 
+
 @app.route("/chart", method=["POST"])
 def chart():
     """
@@ -95,6 +95,7 @@ def chart():
     if success return {"Data": list of {"date", "type", "value}}
     else abort http 500
     """
+
     def check(data):
         for key in data.keys():
             if key not in ["UserName", "date"]:
@@ -102,10 +103,9 @@ def chart():
                     """key not in ["UserName", "date"]""")
         return data
 
-
-    def selectTrun(UserID, date):
+    def selectTurn(UserID, date):
         TurnInfo = pg.select(("DateTime", "TurnCount"), "TurnTable",
-                                f""" "UserID"='{UserID}' AND "DateTime" BETWEEN '{date - 7}' AND {date} """)
+                             f""" "UserID"='{UserID}' AND "DateTime" BETWEEN '{date - 7}' AND {date} """)
         Data = []
         for Turn in TurnInfo:
             DateTime, TurnCount = Turn
@@ -118,7 +118,7 @@ def chart():
 
     def selectSleepingTime(UserID, date):
         SleepInfos = pg.select(("DateTime", "SleepTime"), "SleepingTable",
-                                f""" "UserID"='{UserID}' AND "DateTime" BETWEEN '{date - 7}' AND {date} """)
+                               f""" "UserID"='{UserID}' AND "DateTime" BETWEEN '{date - 7}' AND {date} """)
         Data = []
         for SleepInfo in SleepInfos:
             DateTime, SleepingTime = SleepInfo
@@ -134,11 +134,9 @@ def chart():
         data = check(data)
         UserName = data["UserName"].lower()
         date = data["date"]
-        UserID = pg.select(("UserID"), "UserTable",
+        UserID = pg.select("UserID", "UserTable",
                            f""" "UserName"='{UserName}' """)[0][0]
-        res = []
-        res.append(selectTrun(UserID, date))
-        res.append(selectSleepingTime(UserID, date))
+        res = [selectTurn(UserID, date), selectSleepingTime(UserID, date)]
         return {"Data": res}
 
     except:
@@ -154,6 +152,7 @@ def register():
     if success return {"Token":token}
     else abort http 500
     """
+
     def check(data):
         for key in data.keys():
             if key not in ["UserName", "Password"]:
@@ -198,6 +197,7 @@ def setting():
     elif token expired abort http 401
     else abort http 500
     """
+
     def sendChange(UserID):
         DeviceID = pg.select(("DeviceID", "DeviceName"), "DeviceTable",
                              f""" "UserID"='{UserID}' """)[0][0]
@@ -310,6 +310,7 @@ def device():
     elif token expired abort http 401
     else abort http 500
     """
+
     def check(data):
         for key in data.keys():
             if key not in ["Action", "Token", "Data"]:
@@ -395,6 +396,7 @@ def account():
     elif token expired abort http 401
     else abort http 500
     """
+
     def check(data):
         for key in data.keys():
             if key not in ["Action", "Token", "Data"]:
