@@ -57,7 +57,7 @@ def buildModel():
         X = np.array(X)
         y = np.array(y)
         # model.fit(X, y, epochs=10)
-        model.save(MODEL_NAME)
+        # model.save(MODEL_NAME)
     return model
 
 
@@ -248,7 +248,7 @@ def jobTurn():
         dict[userId] = dict[userId] + res
 
     for id in dict.keys():
-        pg.insert({"UserID": id, "date": datetime.date.isoformat(),
+        pg.insert({"UserID": id, "date": datetime.datetime.now().isoformat().split('T')[0],
                    "TurnCount": dict[id]}, "TurnTable")
 
     pg.update({"enable": 0}, "DataTable")
