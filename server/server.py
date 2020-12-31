@@ -26,24 +26,23 @@ MODEL_NAME = "./data/" + "SmartPillowModel" + ".h5"
 
 def buildModel():
     # build the deep learning model
-    inputs = tf.keras.Input(shape=(3000, 1), name='inputs')
-    x = tf.keras.layers.Dense(5, activation=None, name='dense_1')(inputs)
-    x = tf.keras.layers.Dropout(0.01, name='dropout')(x)
-    x = tf.keras.layers.GRU(5)(x)
-    x = tf.keras.layers.Dense(5, activation=None, name='dense_2')(x)
-    outputs = tf.keras.layers.Dense(
-        2, activation='softmax', name='predictions')(x)
-
-    model = tf.keras.Model(inputs=inputs, outputs=outputs)
-    model.compile(optimizer=tf.keras.optimizers.Adam(),  # Optimizer
-                  # Loss function to minimize
-                  loss=tf.keras.losses.SparseCategoricalCrossentropy(),
-                  # List of metrics to monitor
-                  metrics=[tf.keras.metrics.SparseCategoricalAccuracy()])
-
     if os.path.exists(MODEL_NAME):
-        model.load_weights(MODEL_NAME)
+        model = tf.keras.models.load_model(MODEL_NAME)
     else:
+        inputs = tf.keras.Input(shape=(3000, 1), name='inputs')
+        x = tf.keras.layers.Dense(5, activation=None, name='dense_1')(inputs)
+        x = tf.keras.layers.Dropout(0.01, name='dropout')(x)
+        x = tf.keras.layers.GRU(5)(x)
+        x = tf.keras.layers.Dense(5, activation=None, name='dense_2')(x)
+        outputs = tf.keras.layers.Dense(
+            2, activation='softmax', name='predictions')(x)
+
+        model = tf.keras.Model(inputs=inputs, outputs=outputs)
+        model.compile(optimizer=tf.keras.optimizers.Adam(),  # Optimizer
+                      # Loss function to minimize
+                      loss=tf.keras.losses.SparseCategoricalCrossentropy(),
+                      # List of metrics to monitor
+                      metrics=[tf.keras.metrics.SparseCategoricalAccuracy()])
         pg = sql.PostgreSQL(database="SmartPillowDB",
                             user="postgres", password="jimpsql")
         trainData = pg.select(("Pressure", "IsSleeping"),
@@ -57,8 +56,8 @@ def buildModel():
             y.append(trainData[i + 3000, 1])
         X = np.array(X)
         y = np.array(y)
-        model.fit(X, y, epochs=10)
-        model.save_weights(MODEL_NAME)
+        # model.fit(X, y, epochs=10)
+        model.save(MODEL_NAME)
     return model
 
 
@@ -164,7 +163,7 @@ def handle(connectionSocket, socketList, SocketUserID):
             data2insert = dict(DeviceID=data["DeviceID"],
                                Pressure=data["Pressure"][i],
                                DateTime=data["DateTime"] -
-                                        (length - 1 - i) * data["Timedelta"]
+                               (length - 1 - i) * data["Timedelta"]
                                )
             pg.insert(data2insert, "DataTable")
         # predict
@@ -213,7 +212,8 @@ def jobSleepTime():
         s = y.second
         return int(h) * 3600 + int(m) * 60 + int(s)  # int()函数转换成整数运算
 
-    TimeInfos = pg.select(("UserID", "WakeupTime", "SleepingTime"), "TimeTable")
+    TimeInfos = pg.select(
+        ("UserID", "WakeupTime", "SleepingTime"), "TimeTable")
     for TimeInfo in TimeInfos:
         userId, wakeupTime, sleepingTime = TimeInfo
         wakeupSecond = time2sec(wakeupTime)
@@ -222,7 +222,8 @@ def jobSleepTime():
             timeDiff = wakeupSecond - sleepingSecond + 86400
         else:
             timeDiff = wakeupSecond - sleepingSecond
-        pg.insert({"UserID": userId, "date": datetime.date.isoformat(), "SleepTime": timeDiff}, "SleepingTable")
+        pg.insert({"UserID": userId, "date": datetime.date.isoformat(),
+                   "SleepTime": timeDiff}, "SleepingTable")
 
 
 def jobTurn():
@@ -247,7 +248,8 @@ def jobTurn():
         dict[userId] = dict[userId] + res
 
     for id in dict.keys():
-        pg.insert({"UserID": id, "date": datetime.date.isoformat(), "TurnCount": dict[id]}, "TurnTable")
+        pg.insert({"UserID": id, "date": datetime.date.isoformat(),
+                   "TurnCount": dict[id]}, "TurnTable")
 
     pg.update({"enable": 0}, "DataTable")
 
