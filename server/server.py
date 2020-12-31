@@ -159,13 +159,6 @@ def handle(connectionSocket, socketList, SocketUserID):
     if "Pressure" in data.keys():
         # save data to database
         length = len(data["Pressure"])
-        for i in range(length):
-            data2insert = dict(DeviceID=data["DeviceID"],
-                               Pressure=data["Pressure"][i],
-                               DateTime=data["DateTime"] -
-                               (length - 1 - i) * data["Timedelta"]
-                               )
-            pg.insert(data2insert, "DataTable")
         # predict
         DT = data["DateTime"] - datetime.timedelta(seconds=10800)
         data2predict = pg.select("Pressure", "DataTable",
@@ -178,6 +171,15 @@ def handle(connectionSocket, socketList, SocketUserID):
                 data2predict
             ), axis=1)
         IsSleeping = int(np.argmax(model.predict(data2predict)))
+        # insert
+        for i in range(length):
+            data2insert = dict(DeviceID=data["DeviceID"],
+                               Pressure=data["Pressure"][i],
+                               DateTime=data["DateTime"] -
+                               (length - 1 - i) * data["Timedelta"],
+                               IsSleeping=(IsSleeping==1),
+                               )
+            pg.insert(data2insert, "DataTable")
     else:
         IsSleeping = 2
 
