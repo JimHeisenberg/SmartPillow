@@ -133,10 +133,16 @@ def chart():
         data = request.get_json()
         data = check(data)
         UserName = data["UserName"].lower()
+        # Token = jsonData["Token"]
+        # if "Data" in jsonData.keys():
+        #     Data = jsonData["Data"]
+        # UserID = verifyToken(Token)["UserID"]
         date = data["date"]
         UserID = pg.select("UserID", "UserTable",
                            f""" "UserName"='{UserName}' """)[0][0]
         res = [selectTurn(UserID, date), selectSleepingTime(UserID, date)]
+        # res = selectTurn(UserID, date)
+        # res.extend(selectSleepingTime(UserID, date))
         return {"Data": res}
 
     except:
