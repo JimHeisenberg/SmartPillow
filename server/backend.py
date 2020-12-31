@@ -86,7 +86,7 @@ def login():
         abort(401)
 
 
-@app.route("/chart", method=["POST"])
+@app.route("/chart", methods=["POST"])
 def chart():
     """
     post jsonData to backend
