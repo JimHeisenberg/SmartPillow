@@ -68,9 +68,9 @@ CREATE TABLE public."DataTable"
 CREATE TABLE public."TurnTable"
 (
     "UserID" integer NOT NULL DEFAULT nextval('"TurnTable_UserID_seq"'::regclass),
-    "DateTime" date,
+    "Date" date,
     "TurnCount" integer,
-    CONSTRAINT "TurnTable_pkey" PRIMARY KEY ("UserID"),
+    CONSTRAINT "TurnTable_pkey" PRIMARY KEY ("UserID", "Date"),
     CONSTRAINT "TurnTable_UserID_fkey" FOREIGN KEY ("UserID")
     REFERENCES public."UserTable" ("UserID") MATCH SIMPLE
     ON UPDATE CASCADE
@@ -80,9 +80,9 @@ CREATE TABLE public."TurnTable"
 CREATE TABLE public."SleepingTable"
 (
     "UserID" integer NOT NULL DEFAULT nextval('"SleepingTable_UserID_seq"'::regclass),
-    "DateTime" date,
+    "Date" date,
     "SleepTime" double precision,
-    CONSTRAINT "SleepingTable_pkey" PRIMARY KEY ("UserID"),
+    CONSTRAINT "SleepingTable_pkey" PRIMARY KEY ("UserID", "Date"),
     CONSTRAINT "SleepingTable_UserID_fkey" FOREIGN KEY ("UserID")
     REFERENCES public."UserTable" ("UserID") MATCH SIMPLE
     ON UPDATE CASCADE

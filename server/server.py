@@ -222,7 +222,8 @@ def jobSleepTime():
             timeDiff = wakeupSecond - sleepingSecond + 86400
         else:
             timeDiff = wakeupSecond - sleepingSecond
-        pg.insert({"UserID": userId, "date": datetime.date.isoformat(),
+        # todo
+        pg.insert({"UserID": userId, "Date": datetime.datetime.now().isoformat().split('T')[0],
                    "SleepTime": timeDiff}, "SleepingTable")
 
 
@@ -248,7 +249,7 @@ def jobTurn():
         dict[userId] = dict[userId] + res
 
     for id in dict.keys():
-        pg.insert({"UserID": id, "date": datetime.datetime.now().isoformat().split('T')[0],
+        pg.insert({"UserID": id, "Date": datetime.datetime.now().isoformat().split('T')[0],
                    "TurnCount": dict[id]}, "TurnTable")
 
     pg.update({"enable": 0}, "DataTable")
@@ -265,8 +266,8 @@ if __name__ == "__main__":
     socketList = []
 
     while True:
-        schedule.every().day.at("11:00").do(jobSleepTime())
-        schedule.every().day.at("11:00").do(jobTurn())
+        schedule.every().day.at("11:00").do(jobSleepTime)
+        schedule.every().day.at("11:00").do(jobTurn)
         time.sleep(0.1)
         schedule.run_pending()
         try:
