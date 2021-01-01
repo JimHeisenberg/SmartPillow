@@ -242,11 +242,12 @@ def jobTurn():
     dictWake = {}
     for TurnInfo in TurnInfos:
         deviceId, isSleeping = TurnInfo
-        userId = pg.select("UserID", "DeviceTable",
+        userIds = pg.select("UserID", "DeviceTable",
                            f''' "DeviceID" = '{deviceId}' ''')
-        dictTurns[userId] = 0
-        dictSleep[userId] = 0
-        dictWake[userId] = 0
+        for userId in userIds:
+            dictTurns[userId] = 0
+            dictSleep[userId] = 0
+            dictWake[userId] = 0
 
     for TurnInfo in TurnInfos:
         deviceId, isSleeping = TurnInfo
