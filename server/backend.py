@@ -111,15 +111,15 @@ def chart():
         dateEnd = dateNow.isoformat().split('T')[0]
         TurnInfo = pg.select(("Date", "TurnCount"), "TurnTable",
                              f""" "UserID"='{UserID}' AND "Date" BETWEEN '{dateStart}' AND {dateEnd} """)
-        Data = []
+        DataTurn = []
         for Turn in TurnInfo:
             DateTime, TurnCount = Turn
             resTurn = {"date": DateTime,
                        "type": "翻身次数",
                        "value": TurnCount
                        }
-            Data.append(resTurn)
-        return Data
+            DataTurn.append(resTurn)
+        return DataTurn
 
     def selectSleepingTime(UserID):
         dateNow = datetime.datetime.now()
@@ -127,25 +127,25 @@ def chart():
         dateEnd = dateNow.isoformat().split('T')[0]
         SleepInfos = pg.select(("Date", "SleepTime"), "SleepingTable",
                                f""" "UserID"='{UserID}' AND "Date" BETWEEN '{dateStart}' AND '{dateEnd}' """)
-        Data = []
+        DataSleep = []
         for SleepInfo in SleepInfos:
             DateTime, SleepingTime = SleepInfo
             resTmp = {"date": DateTime,
                       "type": "睡眠时间",
                       "value": SleepingTime
                       }
-            Data.append(resTmp)
-        return Data
+            DataSleep.append(resTmp)
+        return DataSleep
 
     try:
         data = request.get_json()
         data = check(data)
         Token = data["Token"]
         UserID = verifyToken(Token)["UserID"]
-        res = selectTurn(UserID)
+        res = []
+        res.extend(selectTurn(UserID))
         res.extend(selectSleepingTime(UserID))
         return {"Data": res}
-
     except:
         abort(401)
 
