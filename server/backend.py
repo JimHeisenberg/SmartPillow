@@ -90,8 +90,7 @@ def login():
 def chart():
     """
     post jsonData to backend
-    jsonData =
-    {"Action":"select","Token":token}
+    jsonData = {"Action":"select","Token":token}
     or  {"Action":str, "Token":token, "Data":None}
     actually only Token is used
     return a json data
@@ -136,7 +135,7 @@ def chart():
                    "value": SleepingTime
                    }
             Data.append(res)
-            return Data
+        return Data
 
     try:
         data = request.get_json()
