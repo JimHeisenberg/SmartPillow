@@ -115,7 +115,7 @@ def chart():
         for Turn in TurnInfo:
             DateTime, TurnCount = Turn
             resTurn = {"date": DateTime,
-                       "type": "翻身次数",
+                       "type": "turn over count",
                        "value": TurnCount
                        }
             DataTurn.append(resTurn)
@@ -131,7 +131,7 @@ def chart():
         for SleepInfo in SleepInfos:
             DateTime, SleepingTime = SleepInfo
             resTmp = {"date": DateTime,
-                      "type": "睡眠时间",
+                      "type": "sleeptime",
                       "value": SleepingTime
                       }
             DataSleep.append(resTmp)
