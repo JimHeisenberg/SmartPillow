@@ -15,6 +15,9 @@ CREATE SEQUENCE public."DataTable_DeviceID_seq";
 CREATE SEQUENCE public."TurnTable_UserID_seq";
 CREATE SEQUENCE public."SleepingTable_UserID_seq";
 
+CREATE SEQUENCE public."DataTableV2_DataID_seq";
+CREATE SEQUENCE public."DataTableV2_DeviceID_seq";
+
 CREATE TABLE public."UserTable"
 (
     "UserID" integer NOT NULL DEFAULT nextval('"UserTable_UserID_seq"'::regclass),
@@ -60,6 +63,20 @@ CREATE TABLE public."DataTable"
     "enable" int default 1,
     CONSTRAINT "DataTable_pkey" PRIMARY KEY ("DataID"),
     CONSTRAINT "DataTable_DeviceID_fkey" FOREIGN KEY ("DeviceID")
+        REFERENCES public."DeviceTable" ("DeviceID") MATCH SIMPLE
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT
+);
+
+
+CREATE TABLE public."DataTable_V2"
+(
+    "DataID" integer NOT NULL DEFAULT nextval('"DataTableV2_DataID_seq"'::regclass),
+    "DeviceID" integer NOT NULL DEFAULT nextval('"DataTableV2_DeviceID_seq"'::regclass),
+    "IsSleeping" boolean,
+    "enable" int default 1,
+    CONSTRAINT "DataTableV2._pkey" PRIMARY KEY ("DataID"),
+    CONSTRAINT "DataTableV2_DeviceID_fkey" FOREIGN KEY ("DeviceID")
         REFERENCES public."DeviceTable" ("DeviceID") MATCH SIMPLE
         ON UPDATE CASCADE
         ON DELETE RESTRICT

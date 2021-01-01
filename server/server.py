@@ -235,15 +235,15 @@ def jobSleepTime():
 
 def jobTurn():
     enable = 1
-    TurnInfos = pg.select(("DeviceID", "IsSleeping"), "DataTable",
-                          f""" "enable"='{enable}' """)
+    TurnInfos = pg.select(("DeviceID", "IsSleeping"), "DataTable_V2",
+                              f""" "enable"='{enable}' """)
     dictTurns = {}
     dictSleep = {}
     dictWake = {}
     for TurnInfo in TurnInfos:
         deviceId, isSleeping = TurnInfo
         userIds = pg.select("UserID", "DeviceTable",
-                           f''' "DeviceID" = '{deviceId}' ''')
+                           f''' "DeviceID" = '{deviceId}' ''')[0]
         for userId in userIds:
             dictTurns[userId] = 0
             dictSleep[userId] = 0
@@ -252,12 +252,13 @@ def jobTurn():
     for TurnInfo in TurnInfos:
         deviceId, isSleeping = TurnInfo
         userIds = pg.select("UserID", "DeviceTable",
-                           f''' "DeviceID" = '{deviceId}' ''')
+                           f''' "DeviceID" = '{deviceId}' ''')[0]
         for userId in userIds:
+            id = userId
             if isSleeping:
-                dictSleep[userId] = dictSleep.get(userId, 0) + 1
+                dictSleep[id] = dictSleep.get(id, 0) + 1
             else:
-                dictWake[userId] = dictWake.get(userId, 0) + 1
+                dictWake[id] = dictWake.get(id, 0) + 1
 
     for dictTurn in dictTurns:
         res = min(dictSleep[dictTurn], dictWake[dictTurn])
