@@ -142,11 +142,12 @@ def chart():
         data = check(data)
         Token = data["Token"]
         UserID = verifyToken(Token)["UserID"]
-        #res = []
-        #res.extend(selectTurn(UserID))
-        #res.extend(selectSleepingTime(UserID))
-        #return {"Data": res}
-        return {"Data" : UserID}
+        res = []
+        res.extend(selectTurn(UserID))
+        res.extend(selectSleepingTime(UserID))
+        return {"Data": res}
+        return {"ID" : UserID,
+                "Data" : res}
     except:
         abort(401)
 
