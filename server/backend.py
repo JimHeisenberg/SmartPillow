@@ -90,7 +90,10 @@ def login():
 def chart():
     """
     post jsonData to backend
-    jsonData = {"UserName":str,"date":long}
+    jsonData =
+    {"Action":"select","Token":token}
+    or  {"Action":str, "Token":token, "Data":None}
+    actually only Token is used
     return a json data
     if success return {"Data": list of {"date", "type", "value}}
     else abort http 500
@@ -98,14 +101,17 @@ def chart():
 
     def check(data):
         for key in data.keys():
-            if key not in ["UserName", "date"]:
+            if key not in ["Token", "Data", "Action"]:
                 raise Exception(
-                    """key not in ["UserName", "date"]""")
+                    """key not in ["Token", "Data", "Action"]""")
         return data
 
-    def selectTurn(UserID, date):
-        TurnInfo = pg.select(("DateTime", "TurnCount"), "TurnTable",
-                             f""" "UserID"='{UserID}' AND "DateTime" BETWEEN '{date - 7}' AND {date} """)
+    def selectTurn(UserID):
+        dateNow = datetime.datetime.now()
+        dateStart = (dateNow - datetime.timedelta(days=7)).isoformat().split('T')[0]
+        dateEnd = dateNow.isoformat().split('T')[0]
+        TurnInfo = pg.select(("Date", "TurnCount"), "TurnTable",
+                             f""" "UserID"='{UserID}' AND "Date" BETWEEN '{dateStart}' AND {dateEnd} """)
         Data = []
         for Turn in TurnInfo:
             DateTime, TurnCount = Turn
@@ -116,9 +122,12 @@ def chart():
             Data.append(res)
         return Data
 
-    def selectSleepingTime(UserID, date):
-        SleepInfos = pg.select(("DateTime", "SleepTime"), "SleepingTable",
-                               f""" "UserID"='{UserID}' AND "DateTime" BETWEEN '{date - 7}' AND {date} """)
+    def selectSleepingTime(UserID):
+        dateNow = datetime.datetime.now()
+        dateStart = (dateNow - datetime.timedelta(days=7)).isoformat().split('T')[0]
+        dateEnd = dateNow.isoformat().split('T')[0]
+        SleepInfos = pg.select(("Date", "SleepTime"), "SleepingTable",
+                               f""" "UserID"='{UserID}' AND "Date" BETWEEN '{dateStart}' AND '{dateEnd}' """)
         Data = []
         for SleepInfo in SleepInfos:
             DateTime, SleepingTime = SleepInfo
@@ -132,17 +141,10 @@ def chart():
     try:
         data = request.get_json()
         data = check(data)
-        UserName = data["UserName"].lower()
-        # Token = jsonData["Token"]
-        # if "Data" in jsonData.keys():
-        #     Data = jsonData["Data"]
-        # UserID = verifyToken(Token)["UserID"]
-        date = data["date"]
-        UserID = pg.select("UserID", "UserTable",
-                           f""" "UserName"='{UserName}' """)[0][0]
-        res = [selectTurn(UserID, date), selectSleepingTime(UserID, date)]
-        # res = selectTurn(UserID, date)
-        # res.extend(selectSleepingTime(UserID, date))
+        Token = data["Token"]
+        UserID = verifyToken(Token)["UserID"]
+        res = selectTurn(UserID)
+        res.extend(selectSleepingTime(UserID))
         return {"Data": res}
 
     except:
