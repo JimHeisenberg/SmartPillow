@@ -251,12 +251,13 @@ def jobTurn():
 
     for TurnInfo in TurnInfos:
         deviceId, isSleeping = TurnInfo
-        userId = pg.select("UserID", "DeviceTable",
+        userIds = pg.select("UserID", "DeviceTable",
                            f''' "DeviceID" = '{deviceId}' ''')
-        if isSleeping:
-            dictSleep[userId] = dictSleep.get(userId, 0) + 1
-        else:
-            dictWake[userId] = dictWake.get(userId, 0) + 1
+        for userId in userIds:
+            if isSleeping:
+                dictSleep[userId] = dictSleep.get(userId, 0) + 1
+            else:
+                dictWake[userId] = dictWake.get(userId, 0) + 1
 
     for dictTurn in dictTurns:
         res = min(dictSleep[dictTurn], dictWake[dictTurn])
