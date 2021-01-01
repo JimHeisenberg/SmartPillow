@@ -110,7 +110,7 @@ def chart():
         dateStart = (dateNow - datetime.timedelta(days=7)).isoformat().split('T')[0]
         dateEnd = dateNow.isoformat().split('T')[0]
         TurnInfo = pg.select(("Date", "TurnCount"), "TurnTable",
-                             f""" "UserID"='{UserID}' AND "Date" BETWEEN '{dateStart}' AND {dateEnd} """)
+                             f""" "UserID"='{UserID}' AND "Date" BETWEEN '{dateStart}' AND '{dateEnd}' """)
         DataTurn = []
         for Turn in TurnInfo:
             DateTime, TurnCount = Turn
