@@ -143,7 +143,7 @@ def chart():
         Token = data["Token"]
         UserID = verifyToken(Token)["UserID"]
         res = []
-        res.extend(selectTurn(UserID))
+        #res.extend(selectTurn(UserID))
         res.extend(selectSleepingTime(UserID))
         return {"Data": res}
         return {"ID" : UserID,
