@@ -114,11 +114,11 @@ def chart():
         Data = []
         for Turn in TurnInfo:
             DateTime, TurnCount = Turn
-            res = {"date": DateTime,
-                   "type": "翻身次数",
-                   "value": TurnCount
-                   }
-            Data.append(res)
+            resTurn = {"date": DateTime,
+                       "type": "翻身次数",
+                       "value": TurnCount
+                       }
+            Data.append(resTurn)
         return Data
 
     def selectSleepingTime(UserID):
@@ -130,11 +130,11 @@ def chart():
         Data = []
         for SleepInfo in SleepInfos:
             DateTime, SleepingTime = SleepInfo
-            res = {"date": DateTime,
-                   "type": "睡眠时间",
-                   "value": SleepingTime
-                   }
-            Data.append(res)
+            resTmp = {"date": DateTime,
+                      "type": "睡眠时间",
+                      "value": SleepingTime
+                      }
+            Data.append(resTmp)
         return Data
 
     try:
