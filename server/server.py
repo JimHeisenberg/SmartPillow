@@ -113,7 +113,7 @@ def handle(connectionSocket, socketList, SocketUserID):
         "Pressure":array of double/float,e.g.[0.1, 0.2,0.3]
         //optional
         "Timedelta":float, e.g. 0.5(optional, default=0.5)
-        "Volume":array of double/float,e.g.[0.1, 0.2,0.3](optional, same length as Pressure) 
+        "Volume":array of double/float,e.g.[0.1, 0.2,0.3](optional, same length as Pressure)
         "DateTime":isoformat (optional)
     }
     Send
@@ -161,10 +161,14 @@ def handle(connectionSocket, socketList, SocketUserID):
         length = len(data["Pressure"])
         # predict
         DT = data["DateTime"] - datetime.timedelta(seconds=10800)
-        data2predict = pg.select("Pressure", "DataTable",
-                                 f""" "DeviceID"={data["DeviceID"]} AND """ +
-                                 f""" "DateTime">'{DT.isoformat()}' """)[-3000:]
-        data2predict = np.array([data2predict])
+        data2select = pg.select("Pressure", "DataTable",
+                                f""" "DeviceID"={data["DeviceID"]} AND """ +
+                                f""" "DateTime">'{DT.isoformat()}' """)[-3000+length:]
+        data2predict = np.concatenate(
+            [np.array([data2select]).reshape(1, -1, 1),
+             np.array(data["Pressure"]).reshape(1, -1, 1)],
+            axis=1,
+        )
         if data2predict.shape[1] < 3000:
             data2predict = np.concatenate((
                 np.zeros((1, 3000 - data2predict.shape[1], 1)),
@@ -177,7 +181,7 @@ def handle(connectionSocket, socketList, SocketUserID):
                                Pressure=data["Pressure"][i],
                                DateTime=data["DateTime"] -
                                (length - 1 - i) * data["Timedelta"],
-                               IsSleeping=(IsSleeping==1),
+                               IsSleeping=(IsSleeping == 1),
                                )
             pg.insert(data2insert, "DataTable")
     else:
@@ -236,14 +240,14 @@ def jobSleepTime():
 def jobTurn():
     enable = 1
     TurnInfos = pg.select(("DeviceID", "IsSleeping"), "DataTable",
-                              f""" "enable"='{enable}' """)
+                          f""" "enable"='{enable}' """)
     dictTurns = {}
     dictSleep = {}
     dictWake = {}
     for TurnInfo in TurnInfos:
         deviceId, isSleeping = TurnInfo
         userIds = pg.select("UserID", "DeviceTable",
-                           f''' "DeviceID" = '{deviceId}' ''')[0]
+                            f''' "DeviceID" = '{deviceId}' ''')[0]
         for userId in userIds:
             dictTurns[userId] = 0
             dictSleep[userId] = 0
@@ -252,7 +256,7 @@ def jobTurn():
     for TurnInfo in TurnInfos:
         deviceId, isSleeping = TurnInfo
         userIds = pg.select("UserID", "DeviceTable",
-                           f''' "DeviceID" = '{deviceId}' ''')[0]
+                            f''' "DeviceID" = '{deviceId}' ''')[0]
         for userId in userIds:
             id = userId
             if isSleeping:
@@ -277,8 +281,8 @@ if __name__ == "__main__":
 
     # UserID connectionSocket list
     socketList = []
-    #jobSleepTime()
-    #jobTurn()
+    # jobSleepTime()
+    # jobTurn()
     while True:
         schedule.every().day.at("11:00").do(jobSleepTime)
         schedule.every().day.at("11:00").do(jobTurn)
