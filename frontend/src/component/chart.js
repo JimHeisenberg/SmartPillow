@@ -15,6 +15,14 @@ function getAve(array) {
     return ave;
 }
 
+const timeFormat = (date)=>{
+    const dayMap = ['日', '一', '二', '三', '四', '五', '六']
+    const temp = new Date(date)
+    return temp.getFullYear()+'年'+(temp.getMonth()+1)+'月'+temp.getDate()+'日 '
+    +temp.getHours()+':'+temp.getMinutes()+':'+temp.getSeconds()
+    +' 星期'+dayMap[temp.getDay()]
+}
+
 const Chart2 = React.FC = ({data}) => {
     var ava = 0;
     var arr = [];
@@ -24,6 +32,7 @@ const Chart2 = React.FC = ({data}) => {
         if (i.type == '睡眠时间') {
             arr.push(i.value);
             if (i.value > best_score) {
+
                 best_score_date = i.date
             }
         }
@@ -53,8 +62,8 @@ const Chart2 = React.FC = ({data}) => {
     return <div>
         <div style={{ position: "relative", top: "5vh" }}><Line {...config} /></div>
         <div style={{ position: "relative", top: "5vh", margin: "30px" }}>人只有在浅睡眠的时候才会翻身,翻身次数和睡眠时间可以大致反应一个人的睡眠质量如何</div>
-        <h3 style={{ position: "relative", top: "5vh", margin: "30px" }}>您本周的平均睡眠时间:{ava}</h3>
-        <h3 style={{ position: "relative", top: "5vh", margin: "30px" }}>您本周睡眠质量最好的一天:{best_score_date}</h3>
+        <h3 style={{ position: "relative", top: "5vh", margin: "30px" }}>您本周的平均睡眠时间:{(ava / 60).toFixed(2)}分钟</h3>
+        <h3 style={{ position: "relative", top: "5vh", margin: "30px" }}>您本周睡眠质量最好的一天:{timeFormat(best_score_date)}</h3>
     </div>;
 };
 class Chart extends React.Component {
