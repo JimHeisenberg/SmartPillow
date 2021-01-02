@@ -18,8 +18,7 @@ function getAve(array) {
 const timeFormat = (date)=>{
     const dayMap = ['日', '一', '二', '三', '四', '五', '六']
     const temp = new Date(date)
-    return temp.getFullYear()+'年'+(temp.getMonth()+1)+'月'+temp.getDate()+'日 '
-    +temp.getHours()+':'+temp.getMinutes()+':'+temp.getSeconds()
+    return temp.getFullYear()+'年'+(temp.getMonth()+1)+'月'+temp.getDate()+'日'
     +' 星期'+dayMap[temp.getDay()]
 }
 
