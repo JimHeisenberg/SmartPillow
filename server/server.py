@@ -56,8 +56,8 @@ def buildModel():
             y.append(trainData[i + 3000, 1])
         X = np.array(X)
         y = np.array(y)
-        # model.fit(X, y, epochs=10)
-        # model.save(MODEL_NAME)
+        model.fit(X, y, epochs=10)
+        model.save(MODEL_NAME)
     return model
 
 
@@ -235,7 +235,7 @@ def jobSleepTime():
 
 def jobTurn():
     enable = 1
-    TurnInfos = pg.select(("DeviceID", "IsSleeping"), "DataTable_V2",
+    TurnInfos = pg.select(("DeviceID", "IsSleeping"), "DataTable",
                               f""" "enable"='{enable}' """)
     dictTurns = {}
     dictSleep = {}
@@ -277,13 +277,13 @@ if __name__ == "__main__":
 
     # UserID connectionSocket list
     socketList = []
-    jobSleepTime()
-    jobTurn()
+    #jobSleepTime()
+    #jobTurn()
     while True:
-        #schedule.every().day.at("11:00").do(jobSleepTime)
-        #schedule.every().day.at("11:00").do(jobTurn)
+        schedule.every().day.at("11:00").do(jobSleepTime)
+        schedule.every().day.at("11:00").do(jobTurn)
         time.sleep(0.1)
-        #schedule.run_pending()
+        schedule.run_pending()
         try:
             # receive data
             connectionSocket, addr = serverSocket.accept()
