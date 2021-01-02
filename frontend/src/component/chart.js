@@ -34,6 +34,7 @@ const Chart2 = React.FC = ({data}) => {
 
                 best_score_date = i.date
             }
+            i.value = Number((i.value / 3600).toFixed(2))
         }
     });
     ava = getAve(arr);
