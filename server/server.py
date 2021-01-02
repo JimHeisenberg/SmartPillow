@@ -277,8 +277,8 @@ if __name__ == "__main__":
 
     # UserID connectionSocket list
     socketList = []
-    #jobSleepTime()
-    #jobTurn()
+    jobSleepTime()
+    jobTurn()
     while True:
         schedule.every().day.at("11:00").do(jobSleepTime)
         schedule.every().day.at("11:00").do(jobTurn)
