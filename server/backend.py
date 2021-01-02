@@ -111,6 +111,14 @@ def chart():
         dateEnd = dateNow.isoformat().split('T')[0]
         TurnInfo = pg.select(("Date", "TurnCount"), "TurnTable",
                              f""" "UserID"='{UserID}' AND "Date" BETWEEN '{dateStart}' AND '{dateEnd}' """)
+        for i in range(7):
+            date = (dateNow - datetime.timedelta(days=i)).date()
+            existed = False
+            for Turn in TurnInfo:
+                if (date in Turn):
+                    existed = True
+            if not existed:
+                TurnInfo.append((date, 0))
         DataTurn = []
         for Turn in TurnInfo:
             DateTime, TurnCount = Turn
@@ -127,6 +135,14 @@ def chart():
         dateEnd = dateNow.isoformat().split('T')[0]
         SleepInfos = pg.select(("Date", "SleepTime"), "SleepingTable",
                                f""" "UserID"='{UserID}' AND "Date" BETWEEN '{dateStart}' AND '{dateEnd}' """)
+        for i in range(7):
+            date = (dateNow - datetime.timedelta(days=i)).date()
+            existed = False
+            for SleepInfo in SleepInfos:
+                if (date in SleepInfo):
+                    existed = True
+            if not existed:
+                SleepInfos.append((date, 0.0))
         DataSleep = []
         for SleepInfo in SleepInfos:
             DateTime, SleepingTime = SleepInfo

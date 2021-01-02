@@ -230,6 +230,8 @@ def jobSleepTime():
         else:
             timeDiff = wakeupSecond - sleepingSecond
         dictTurns[userId] = dictTurns.get(userId, 0) + timeDiff
+    pg.delete("SleepingTable",
+              f""" "Date" = '{datetime.datetime.now().isoformat().split('T')[0]}' """)
     for dictTurn in dictTurns:
         userId = dictTurn
         timeDiff = dictTurns[dictTurn]
@@ -263,7 +265,8 @@ def jobTurn():
                 dictSleep[id] = dictSleep.get(id, 0) + 1
             else:
                 dictWake[id] = dictWake.get(id, 0) + 1
-
+    pg.delete("TurnTable",
+              f""" "Date" = '{datetime.datetime.now().isoformat().split('T')[0]}' """)
     for dictTurn in dictTurns:
         res = min(dictSleep[dictTurn], dictWake[dictTurn])
         pg.insert({"UserID": dictTurn, "Date": datetime.datetime.now().isoformat().split('T')[0],
