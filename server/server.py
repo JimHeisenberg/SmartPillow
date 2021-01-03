@@ -243,39 +243,30 @@ def jobTurn():
     TurnInfos = pg.select(("DeviceID", "IsSleeping"), "DataTable",
                           f""" "enable"='{enable}' """)
     dictTurns = {}
-    dictSleep = {}
-    dictWake = {}
     dictflag = {}
     for TurnInfo in TurnInfos:
         deviceId, isSleeping = TurnInfo
-        userIds = pg.select("UserID", "DeviceTable",
-                            f''' "DeviceID" = '{deviceId}' ''')[0]
-        for userId in userIds:
-            dictTurns[userId] = 0
-            dictSleep[userId] = 0
-            dictWake[userId] = 0
-            dictflag[userId] = 1
+        userId = pg.select("UserID", "DeviceTable",
+                           f''' "DeviceID" = '{deviceId}' ''')[0][0]
+        dictTurns[userId] = 0
+        dictflag[userId] = 1
 
     for TurnInfo in TurnInfos:
         deviceId, isSleeping = TurnInfo
-        userIds = pg.select("UserID", "DeviceTable",
-                            f''' "DeviceID" = '{deviceId}' ''')[0]
-        for userId in userIds:
-            id = userId
-            if isSleeping:
-                if dictflag[id] == 0:
-                    dictTurns[id] = dictTurns.get(id, 0) + 1
-                    dictflag[id] = 0
-                # dictSleep[id] = dictSleep.get(id, 0) + 1
-            else:
-                if dictflag[id] == 1:
-                    dictTurns[id] = dictTurns.get(id, 0) + 1
-                    dictflag[id] = 1
-                # dictWake[id] = dictWake.get(id, 0) + 1
+        userId = pg.select("UserID", "DeviceTable",
+                           f''' "DeviceID" = '{deviceId}' ''')[0][0]
+        id = userId
+        if isSleeping:
+            if dictflag[id] == 0:
+                dictTurns[id] = dictTurns.get(id, 0) + 1
+                dictflag[id] = 0
+        else:
+            if dictflag[id] == 1:
+                dictTurns[id] = dictTurns.get(id, 0) + 1
+                dictflag[id] = 1
     pg.delete("TurnTable",
               f""" "Date" = '{datetime.datetime.now().isoformat().split('T')[0]}' """)
     for dictTurn in dictTurns:
-        # res = min(dictSleep[dictTurn], dictWake[dictTurn])
         res = dictTurns[dictTurn]
         pg.insert({"UserID": dictTurn, "Date": datetime.datetime.now().isoformat().split('T')[0],
                    "TurnCount": res}, "TurnTable")
