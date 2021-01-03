@@ -36,7 +36,12 @@ const Chart2 = React.FC = ({data}) => {
             }
             i.value = Number((i.value / 3600).toFixed(2))
         }
+        i.date = i.date.substring(0, 16)
     });
+    // 排序
+    data.sort(function(d1, d2) {
+        return new Date(d1.date).getTime() - new Date(d2.date).getTime()
+    })
     ava = getAve(arr);
     const config = {
         title: {
@@ -62,7 +67,7 @@ const Chart2 = React.FC = ({data}) => {
     return <div>
         <div style={{ position: "relative", top: "5vh" }}><Line {...config} /></div>
         <div style={{ position: "relative", top: "5vh", margin: "30px" }}>人只有在浅睡眠的时候才会翻身,翻身次数和睡眠时间可以大致反应一个人的睡眠质量如何</div>
-        <h3 style={{ position: "relative", top: "5vh", margin: "30px" }}>您本周的平均睡眠时间:{(ava / 60).toFixed(2)}分钟</h3>
+        <h3 style={{ position: "relative", top: "5vh", margin: "30px" }}>您本周的平均睡眠时间:{(ava / 3600).toFixed(2)}小时</h3>
         <h3 style={{ position: "relative", top: "5vh", margin: "30px" }}>您本周睡眠质量最好的一天:{timeFormat(best_score_date)}</h3>
     </div>;
 };
