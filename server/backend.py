@@ -15,7 +15,8 @@ elif "GCC" in sys.version:
     HOST = "172.17.0.13"
 else:
     HOST = "localhost"
-SERVER_PORT = 12345
+SERVER_PORT = 54321
+BACKEND_PORT = 12345
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'SmartPillowProject'
@@ -456,4 +457,4 @@ def account():
 
 
 if __name__ == "__main__":
-    app.run(host=HOST, port=SERVER_PORT, debug=True)
+    app.run(host=HOST, port=BACKEND_PORT, debug=True)
