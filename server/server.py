@@ -9,7 +9,6 @@ import numpy as np
 import sql
 import schedule
 
-
 pg = sql.PostgreSQL(database="SmartPillowDB",
                     user="postgres", password="jimpsql")
 if "MSC" in sys.version:
@@ -163,7 +162,7 @@ def handle(connectionSocket, socketList, SocketUserID):
         DT = data["DateTime"] - datetime.timedelta(seconds=10800)
         data2select = pg.select("Pressure", "DataTable",
                                 f""" "DeviceID"={data["DeviceID"]} AND """ +
-                                f""" "DateTime">'{DT.isoformat()}' """)[-3000+length:]
+                                f""" "DateTime">'{DT.isoformat()}' """)[-3000 + length:]
         data2predict = np.concatenate(
             [np.array([data2select]).reshape(1, -1, 1),
              np.array(data["Pressure"]).reshape(1, -1, 1)],
@@ -180,7 +179,7 @@ def handle(connectionSocket, socketList, SocketUserID):
             data2insert = dict(DeviceID=data["DeviceID"],
                                Pressure=data["Pressure"][i],
                                DateTime=data["DateTime"] -
-                               (length - 1 - i) * data["Timedelta"],
+                                        (length - 1 - i) * data["Timedelta"],
                                IsSleeping=(IsSleeping == 1),
                                )
             pg.insert(data2insert, "DataTable")
@@ -246,6 +245,7 @@ def jobTurn():
     dictTurns = {}
     dictSleep = {}
     dictWake = {}
+    dictflag = {}
     for TurnInfo in TurnInfos:
         deviceId, isSleeping = TurnInfo
         userIds = pg.select("UserID", "DeviceTable",
@@ -254,6 +254,7 @@ def jobTurn():
             dictTurns[userId] = 0
             dictSleep[userId] = 0
             dictWake[userId] = 0
+            dictflag[userId] = 1
 
     for TurnInfo in TurnInfos:
         deviceId, isSleeping = TurnInfo
@@ -262,13 +263,20 @@ def jobTurn():
         for userId in userIds:
             id = userId
             if isSleeping:
-                dictSleep[id] = dictSleep.get(id, 0) + 1
+                if dictflag[id] == 0:
+                    dictTurns[id] = dictTurns.get(id, 0) + 1
+                    dictflag[id] = 0
+                # dictSleep[id] = dictSleep.get(id, 0) + 1
             else:
-                dictWake[id] = dictWake.get(id, 0) + 1
+                if dictflag[id] == 1:
+                    dictTurns[id] = dictTurns.get(id, 0) + 1
+                    dictflag[id] = 1
+                # dictWake[id] = dictWake.get(id, 0) + 1
     pg.delete("TurnTable",
               f""" "Date" = '{datetime.datetime.now().isoformat().split('T')[0]}' """)
     for dictTurn in dictTurns:
-        res = min(dictSleep[dictTurn], dictWake[dictTurn])
+        # res = min(dictSleep[dictTurn], dictWake[dictTurn])
+        res = dictTurns[dictTurn]
         pg.insert({"UserID": dictTurn, "Date": datetime.datetime.now().isoformat().split('T')[0],
                    "TurnCount": res}, "TurnTable")
 
