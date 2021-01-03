@@ -286,8 +286,8 @@ if __name__ == "__main__":
     socketList = []
     jobSleepTime()
     jobTurn()
-    schedule.every().day.at("17:33").do(jobSleepTime)
-    schedule.every().day.at("17:33").do(jobTurn)
+    schedule.every().day.at("17:37").do(jobSleepTime)
+    schedule.every().day.at("17:37").do(jobTurn)
     while True:
         time.sleep(0.1)
         schedule.run_pending()
