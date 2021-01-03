@@ -259,11 +259,11 @@ def jobTurn():
         if isSleeping:
             if dictflag[id] == 0:
                 dictTurns[id] = dictTurns.get(id, 0) + 1
-                dictflag[id] = 0
+                dictflag[id] = 1
         else:
             if dictflag[id] == 1:
                 dictTurns[id] = dictTurns.get(id, 0) + 1
-                dictflag[id] = 1
+                dictflag[id] = 0
     pg.delete("TurnTable",
               f""" "Date" = '{datetime.datetime.now().isoformat().split('T')[0]}' """)
     for dictTurn in dictTurns:
