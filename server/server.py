@@ -286,7 +286,7 @@ if __name__ == "__main__":
     jobSleepTime()
     jobTurn()
     schedule.every().day.at("11:00").do(jobSleepTime)
-    schedule.every().day.at("11:20").do(jobTurn)
+    schedule.every().day.at("11:00").do(jobTurn)
     while True:
         time.sleep(0.1)
         schedule.run_pending()
