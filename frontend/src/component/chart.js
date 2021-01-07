@@ -31,7 +31,7 @@ const Chart2 = React.FC = ({data}) => {
         if (i.type == '睡眠时间') {
             arr.push(i.value);
             if (i.value > best_score) {
-
+                best_score = i.value
                 best_score_date = i.date
             }
             i.value = Number((i.value / 3600).toFixed(2))
