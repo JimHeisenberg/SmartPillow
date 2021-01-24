@@ -7,7 +7,6 @@ from flask import Flask, current_app, request, abort
 from itsdangerous import BadData, TimedJSONWebSignatureSerializer as Serializer
 import sql
 
-
 pg = sql.PostgreSQL(database="SmartPillowDB",
                     user="postgres", password="jimpsql")
 if "MSC" in sys.version:
@@ -16,8 +15,8 @@ elif "GCC" in sys.version:
     HOST = "172.17.0.13"
 else:
     HOST = "localhost"
-SERVER_PORT = 12345
-
+SERVER_PORT = 54321
+BACKEND_PORT = 12345
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'SmartPillowProject'
@@ -62,6 +61,7 @@ def login():
     if success return {"Token":token}
     else abort http 500
     """
+
     def check(data):
         for key in data.keys():
             if key not in ["UserName", "Password"]:
@@ -87,6 +87,88 @@ def login():
         abort(401)
 
 
+@app.route("/chart", methods=["POST"])
+def chart():
+    """
+    post jsonData to backend
+    jsonData = {"Action":"select","Token":token}
+    or  {"Action":str, "Token":token, "Data":None}
+    actually only Token is used
+    return a json data
+    if success return {"Data": list of {"date", "type", "value}}
+    else abort http 500
+    """
+
+    def check(data):
+        for key in data.keys():
+            if key not in ["Token", "Data", "Action"]:
+                raise Exception(
+                    """key not in ["Token", "Data", "Action"]""")
+        return data
+
+    def selectTurn(UserID):
+        dateNow = datetime.datetime.now()
+        dateStart = (dateNow - datetime.timedelta(days=7)).isoformat().split('T')[0]
+        dateEnd = dateNow.isoformat().split('T')[0]
+        TurnInfo = pg.select(("Date", "TurnCount"), "TurnTable",
+                             f""" "UserID"='{UserID}' AND "Date" BETWEEN '{dateStart}' AND '{dateEnd}' """)
+        for i in range(7):
+            date = (dateNow - datetime.timedelta(days=i)).date()
+            existed = False
+            for Turn in TurnInfo:
+                if (date in Turn):
+                    existed = True
+            if not existed:
+                TurnInfo.append((date, 0))
+        DataTurn = []
+        for Turn in TurnInfo:
+            DateTime, TurnCount = Turn
+            resTurn = {"date": DateTime,
+                       "type": "翻身次数",
+                       "value": TurnCount
+                       }
+            DataTurn.append(resTurn)
+        return DataTurn
+
+    def selectSleepingTime(UserID):
+        dateNow = datetime.datetime.now()
+        dateStart = (dateNow - datetime.timedelta(days=7)).isoformat().split('T')[0]
+        dateEnd = dateNow.isoformat().split('T')[0]
+        SleepInfos = pg.select(("Date", "SleepTime"), "SleepingTable",
+                               f""" "UserID"='{UserID}' AND "Date" BETWEEN '{dateStart}' AND '{dateEnd}' """)
+        for i in range(7):
+            date = (dateNow - datetime.timedelta(days=i)).date()
+            existed = False
+            for SleepInfo in SleepInfos:
+                if (date in SleepInfo):
+                    existed = True
+            if not existed:
+                SleepInfos.append((date, 0.0))
+        DataSleep = []
+        for SleepInfo in SleepInfos:
+            DateTime, SleepingTime = SleepInfo
+            resTmp = {"date": DateTime,
+                      "type": "睡眠时间",
+                      "value": SleepingTime
+                      }
+            DataSleep.append(resTmp)
+        return DataSleep
+
+    try:
+        data = request.get_json()
+        data = check(data)
+        Token = data["Token"]
+        UserID = verifyToken(Token)["UserID"]
+        res = []
+        res.extend(selectTurn(UserID))
+        res.extend(selectSleepingTime(UserID))
+        return {"Data": res}
+        return {"ID" : UserID,
+                "Data" : res}
+    except:
+        abort(401)
+
+
 @app.route("/register", methods=["POST"])
 def register():
     """
@@ -96,6 +178,7 @@ def register():
     if success return {"Token":token}
     else abort http 500
     """
+
     def check(data):
         for key in data.keys():
             if key not in ["UserName", "Password"]:
@@ -140,6 +223,7 @@ def setting():
     elif token expired abort http 401
     else abort http 500
     """
+
     def sendChange(UserID):
         DeviceID = pg.select(("DeviceID", "DeviceName"), "DeviceTable",
                              f""" "UserID"='{UserID}' """)[0][0]
@@ -252,6 +336,7 @@ def device():
     elif token expired abort http 401
     else abort http 500
     """
+
     def check(data):
         for key in data.keys():
             if key not in ["Action", "Token", "Data"]:
@@ -337,6 +422,7 @@ def account():
     elif token expired abort http 401
     else abort http 500
     """
+
     def check(data):
         for key in data.keys():
             if key not in ["Action", "Token", "Data"]:
@@ -371,4 +457,4 @@ def account():
 
 
 if __name__ == "__main__":
-    app.run(host=HOST, port=SERVER_PORT, debug=True)
+    app.run(host=HOST, port=BACKEND_PORT, debug=True)

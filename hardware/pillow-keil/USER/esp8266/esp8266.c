@@ -22,7 +22,7 @@ void ESP8266_Init(char*WIFI_NAME,char* WIFI_PASSWORD,char* SERVER_IP,int SERVER_
         for(time=0;time<500;);
         // WiFi name and password
         printf("AT+CWJAP=\"%s\",\"%s\"\r\n",WIFI_NAME,WIFI_PASSWORD);
-        for(time=0;time<7000;);
+        for(time=0;time<9000;);
         // 175.24.76.61 JimHeisenberg.xyz
       //printf("AT+CIPSTART=\"TCP\",\"192.168.15.81\",54321\r\n");
         printf("AT+CIPSTART=\"TCP\",\"%s\",%d\r\n", SERVER_IP, SERVER_PORT );
@@ -52,18 +52,15 @@ void ESP8266_ReceiveData(char *data){
         for(int i=0;'0'<*point&&*point<'9';i++){
             hashtemp[i]=*point++;//考虑到int32的位数，暂时不做溢出出错处理
         }
+				if((point=FindStringValue(data,"DateTime"))!=NULL){
+						int i = 0;
+						while(*point!='"')TheDate[i++] = *point++;
+						TheDate[i]=0;
+						SetTimeByXML(TheDate);
+				}
         hash = atoi(hashtemp);
         if(version!=hash){
             version = hash;
-            if((point=FindStringValue(data,"DateTime"))!=NULL){
-                int i = 0;
-                while(*point!='"')TheDate[i++] = *point++;
-                TheDate[i]=0;
-							
-            //printf("TheData:%s\n",TheDate);
-							SetTimeByXML(TheDate);
-            }
-            
             ClearClockTable();
             if((point=FindValue(data,"PeriodNumber"))!=NULL){
                 count = *point-'0';//i必须小于10
@@ -77,7 +74,7 @@ void ESP8266_ReceiveData(char *data){
                     }
                     SetClockTable(TheClock,i);
                 }
-                ClockSchedule();
+                //ClockSchedule();
             }
         }
     }

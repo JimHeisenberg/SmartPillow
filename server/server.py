@@ -7,7 +7,7 @@ import datetime
 import tensorflow as tf
 import numpy as np
 import sql
-
+import schedule
 
 pg = sql.PostgreSQL(database="SmartPillowDB",
                     user="postgres", password="jimpsql")
@@ -25,24 +25,23 @@ MODEL_NAME = "./data/" + "SmartPillowModel" + ".h5"
 
 def buildModel():
     # build the deep learning model
-    inputs = tf.keras.Input(shape=(3000, 1), name='inputs')
-    x = tf.keras.layers.Dense(5, activation=None, name='dense_1')(inputs)
-    x = tf.keras.layers.Dropout(0.01, name='dropout')(x)
-    x = tf.keras.layers.GRU(5)(x)
-    x = tf.keras.layers.Dense(5, activation=None, name='dense_2')(x)
-    outputs = tf.keras.layers.Dense(
-        2, activation='softmax', name='predictions')(x)
-
-    model = tf.keras.Model(inputs=inputs, outputs=outputs)
-    model.compile(optimizer=tf.keras.optimizers.Adam(),  # Optimizer
-                  # Loss function to minimize
-                  loss=tf.keras.losses.SparseCategoricalCrossentropy(),
-                  # List of metrics to monitor
-                  metrics=[tf.keras.metrics.SparseCategoricalAccuracy()])
-
     if os.path.exists(MODEL_NAME):
-        model.load_weights(MODEL_NAME)
+        model = tf.keras.models.load_model(MODEL_NAME)
     else:
+        inputs = tf.keras.Input(shape=(3000, 1), name='inputs')
+        x = tf.keras.layers.Dense(5, activation=None, name='dense_1')(inputs)
+        x = tf.keras.layers.Dropout(0.01, name='dropout')(x)
+        x = tf.keras.layers.GRU(5)(x)
+        x = tf.keras.layers.Dense(5, activation=None, name='dense_2')(x)
+        outputs = tf.keras.layers.Dense(
+            2, activation='softmax', name='predictions')(x)
+
+        model = tf.keras.Model(inputs=inputs, outputs=outputs)
+        model.compile(optimizer=tf.keras.optimizers.Adam(),  # Optimizer
+                      # Loss function to minimize
+                      loss=tf.keras.losses.SparseCategoricalCrossentropy(),
+                      # List of metrics to monitor
+                      metrics=[tf.keras.metrics.SparseCategoricalAccuracy()])
         pg = sql.PostgreSQL(database="SmartPillowDB",
                             user="postgres", password="jimpsql")
         trainData = pg.select(("Pressure", "IsSleeping"),
@@ -52,12 +51,12 @@ def buildModel():
         X = []
         y = []
         for i in range(len(trainData) - 3000):
-            X.append(trainData[i:i+3000, 0:1])
-            y.append(trainData[i+3000, 1])
+            X.append(trainData[i:i + 3000, 0:1])
+            y.append(trainData[i + 3000, 1])
         X = np.array(X)
         y = np.array(y)
         model.fit(X, y, epochs=10)
-        model.save_weights(MODEL_NAME)
+        model.save(MODEL_NAME)
     return model
 
 
@@ -113,7 +112,7 @@ def handle(connectionSocket, socketList, SocketUserID):
         "Pressure":array of double/float,e.g.[0.1, 0.2,0.3]
         //optional
         "Timedelta":float, e.g. 0.5(optional, default=0.5)
-        "Volume":array of double/float,e.g.[0.1, 0.2,0.3](optional, same length as Pressure) 
+        "Volume":array of double/float,e.g.[0.1, 0.2,0.3](optional, same length as Pressure)
         "DateTime":isoformat (optional)
     }
     Send
@@ -145,9 +144,9 @@ def handle(connectionSocket, socketList, SocketUserID):
     except Exception as e:
         socketList.remove([SocketUserID, connectionSocket])
         try:
-            connectionSocket.send(str(e).encode())
             print(
                 f"connection socket close: {connectionSocket.getpeername()}", flush=True)
+            connectionSocket.send(str(e).encode())
         except:
             # connectionSocket is already closed
             pass
@@ -159,25 +158,31 @@ def handle(connectionSocket, socketList, SocketUserID):
     if "Pressure" in data.keys():
         # save data to database
         length = len(data["Pressure"])
+        # predict
+        DT = data["DateTime"] - datetime.timedelta(seconds=10800)
+        data2select = pg.select("Pressure", "DataTable",
+                                f""" "DeviceID"={data["DeviceID"]} AND """ +
+                                f""" "DateTime">'{DT.isoformat()}' """)[-3000 + length:]
+        data2predict = np.concatenate(
+            [np.array([data2select]).reshape(1, -1, 1),
+             np.array(data["Pressure"]).reshape(1, -1, 1)],
+            axis=1,
+        )
+        if data2predict.shape[1] < 3000:
+            data2predict = np.concatenate((
+                np.zeros((1, 3000 - data2predict.shape[1], 1)),
+                data2predict
+            ), axis=1)
+        IsSleeping = int(np.argmax(model.predict(data2predict)))
+        # insert
         for i in range(length):
             data2insert = dict(DeviceID=data["DeviceID"],
                                Pressure=data["Pressure"][i],
                                DateTime=data["DateTime"] -
-                               (length-1-i) * data["Timedelta"]
+                                        (length - 1 - i) * data["Timedelta"],
+                               IsSleeping=(IsSleeping == 1),
                                )
             pg.insert(data2insert, "DataTable")
-        # predict
-        DT = data["DateTime"] - datetime.timedelta(seconds=10800)
-        data2predict = pg.select("Pressure", "DataTable",
-                                 f""" "DeviceID"={data["DeviceID"]} AND """ +
-                                 f""" "DateTime">'{DT.isoformat()}' """)[-3000:]
-        data2predict = np.array([data2predict])
-        if data2predict.shape[1] < 3000:
-            data2predict = np.concatenate((
-                np.zeros((1, 3000-data2predict.shape[1], 1)),
-                data2predict
-            ), axis=1)
-        IsSleeping = int(np.argmax(model.predict(data2predict)))
     else:
         IsSleeping = 2
 
@@ -202,6 +207,73 @@ def handle(connectionSocket, socketList, SocketUserID):
     reply(response, socketList, UserID)
 
 
+def jobSleepTime():
+    def time2sec(y):
+        '''
+        时间类型时分秒转换成秒
+        '''
+        h = y.hour  # 直接用datetime.time模块内置的方法，得到时、分、秒
+        m = y.minute
+        s = y.second
+        return int(h) * 3600 + int(m) * 60 + int(s)  # int()函数转换成整数运算
+
+    TimeInfos = pg.select(
+        ("UserID", "WakeupTime", "SleepingTime"), "TimeTable")
+    dictTurns = {}
+    for TimeInfo in TimeInfos:
+        userId, wakeupTime, sleepingTime = TimeInfo
+        wakeupSecond = time2sec(wakeupTime)
+        sleepingSecond = time2sec(sleepingTime)
+        if wakeupSecond < sleepingSecond:
+            timeDiff = wakeupSecond - sleepingSecond + 86400
+        else:
+            timeDiff = wakeupSecond - sleepingSecond
+        dictTurns[userId] = dictTurns.get(userId, 0) + timeDiff
+    pg.delete("SleepingTable",
+              f""" "Date" = '{datetime.datetime.now().isoformat().split('T')[0]}' """)
+    for dictTurn in dictTurns:
+        userId = dictTurn
+        timeDiff = dictTurns[dictTurn]
+        pg.insert({"UserID": userId, "Date": datetime.datetime.now().isoformat().split('T')[0],
+                   "SleepTime": timeDiff}, "SleepingTable")
+
+
+def jobTurn():
+    enable = 1
+    TurnInfos = pg.select(("DeviceID", "IsSleeping"), "DataTable",
+                          f""" "enable"='{enable}' """)
+    dictTurns = {}
+    dictflag = {}
+    for TurnInfo in TurnInfos:
+        deviceId, isSleeping = TurnInfo
+        userId = pg.select("UserID", "DeviceTable",
+                           f''' "DeviceID" = '{deviceId}' ''')[0][0]
+        dictTurns[userId] = 0
+        dictflag[userId] = 1
+
+    for TurnInfo in TurnInfos:
+        deviceId, isSleeping = TurnInfo
+        userId = pg.select("UserID", "DeviceTable",
+                           f''' "DeviceID" = '{deviceId}' ''')[0][0]
+        id = userId
+        if isSleeping:
+            if dictflag[id] == 0:
+                dictTurns[id] = dictTurns.get(id, 0) + 1
+                dictflag[id] = 1
+        else:
+            if dictflag[id] == 1:
+                dictTurns[id] = dictTurns.get(id, 0) + 1
+                dictflag[id] = 0
+    pg.delete("TurnTable",
+              f""" "Date" = '{datetime.datetime.now().isoformat().split('T')[0]}' """)
+    for dictTurn in dictTurns:
+        res = dictTurns[dictTurn]
+        pg.insert({"UserID": dictTurn, "Date": datetime.datetime.now().isoformat().split('T')[0],
+                   "TurnCount": res}, "TurnTable")
+
+    pg.update({"enable": 0}, "DataTable")
+
+
 if __name__ == "__main__":
     serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     serverSocket.bind((HOST, SERVER_PORT))
@@ -211,9 +283,13 @@ if __name__ == "__main__":
 
     # UserID connectionSocket list
     socketList = []
-
+    jobSleepTime()
+    jobTurn()
+    schedule.every().day.at("11:00").do(jobSleepTime)
+    schedule.every().day.at("11:00").do(jobTurn)
     while True:
         time.sleep(0.1)
+        schedule.run_pending()
         try:
             # receive data
             connectionSocket, addr = serverSocket.accept()

@@ -23,7 +23,16 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f10x_it.h"
-
+#include "./usart/bsp_usart.h"
+#include "./esp8266/esp8266.h"
+#include "./tim/bsp_GeneralTim.h"
+extern uint32_t TimeDisplay;
+extern uint32_t TimeAlarm;
+extern char aRxBuffer[400];
+extern uint16_t RxCounter;
+extern uint8_t ReceiveState;
+extern volatile uint32_t time;
+extern volatile uint8_t ReceiveNew;
 /** @addtogroup STM32F10x_StdPeriph_Template
   * @{
   */
@@ -135,6 +144,66 @@ void PendSV_Handler(void)
 void SysTick_Handler(void)
 {
 }
+
+void  GENERAL_TIM_IRQHandler (void)
+{
+	if ( TIM_GetITStatus( GENERAL_TIM, TIM_IT_Update) != RESET ) 
+	{	
+		time++;
+		TIM_ClearITPendingBit(GENERAL_TIM , TIM_FLAG_Update);  		 
+	}		 	
+}
+
+//void DEBUG_USART_IRQHandler(void)
+//{
+//  uint8_t ucTemp;
+//	if(USART_GetITStatus(DEBUG_USARTx,USART_IT_RXNE)!=RESET)
+//	{		
+//		ucTemp = USART_ReceiveData(DEBUG_USARTx);
+//    USART_SendData(DEBUG_USARTx,ucTemp);    
+//	}	 
+//}
+void DEBUG_USART_IRQHandler(void)
+{
+	uint8_t Clear=Clear;//void warning
+	if(USART_GetITStatus(USART1,USART_IT_RXNE)!=RESET){//get a bit
+		aRxBuffer[RxCounter++] = USART1->DR;//save
+	}
+	else if(USART_GetITStatus(USART1,USART_IT_IDLE)!=RESET){
+		Clear=USART1->SR;//read SR
+		Clear=USART1->DR;//read DR(To clean IDLE)
+		ReceiveState=1;//mark
+		aRxBuffer[RxCounter]='\0';
+		RxCounter = 0;
+	}
+}
+/**
+  * @brief  This function handles RTC interrupt request.
+  * @param  None
+  * @retval None
+  */
+void RTC_IRQHandler(void)
+{
+
+	  if (RTC_GetITStatus(RTC_IT_SEC) != RESET)
+	  {
+	    /* Clear the RTC Second interrupt */	
+	    RTC_ClearITPendingBit(RTC_IT_SEC);
+	
+	    /* Enable time update */
+	    TimeDisplay = 1;					
+	    /* Wait until last write operation on RTC registers has finished */
+	    RTC_WaitForLastTask();		
+	  }
+		/*ÄÖÖÓ*/
+	  if (RTC_GetITStatus(RTC_IT_ALR) != RESET)
+		{
+			TimeAlarm  = 1 ;
+			RTC_ClearITPendingBit(RTC_IT_ALR);
+			RTC_WaitForLastTask();
+		}
+}
+
 
 /******************************************************************************/
 /*                 STM32F10x Peripherals Interrupt Handlers                   */

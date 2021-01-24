@@ -3,8 +3,7 @@ import { Button, Col, Icon, Row, Input } from "antd";
 import { Link } from 'react-router-dom';
 import { withRouter } from 'react-router-dom';
 import axios from 'axios';
-import aa from './aa.jpg';
-import bb from './bb.jpg';
+import Image from 'react-image-webp'
 
 const { Search } = Input;
 
@@ -108,9 +107,9 @@ class HomeSearch extends React.Component {
                 </h1>
                 <div style={{ textAlign: "center", position: "relative", top: 50 }}>
                     {/*<img src='https://ss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=2370081220,2159129501&fm=26&gp=0.jpg' width={150} />*/}
-                    <img src={aa} width={200} />
+                    <Image src={require('./aa.jpg')} webp={require('./aa.webp')} width={200} />
                     <br /><br />
-                    <img src={bb} width={200} />
+                    <Image src={require('./bb.jpg')} webp={require('./bb.webp')} width={200} />
                 </div>
                 <Row className="home-page-button" style={{ display: "flex", justifyContent: "space-around", position: "relative", top: "15vh" }}>
                     <Link to="/login">

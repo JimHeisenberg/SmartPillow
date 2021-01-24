@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "stm32f10x.h"
+#include "./led/led.h"
 #include "./usart/bsp_usart.h"
 #include "./rtc/bsp_rtc.h"
 #include "./adc/bsp_adc.h"
@@ -19,14 +20,13 @@ extern __IO uint32_t TimeDisplay;
 extern __IO uint32_t TimeAlarm;
 extern __IO uint16_t ADC_ConvertedValue;
 
-char *WIFI_NAME = "JIM-MIX2S";
+char *WIFI_NAME = "JimHotspot";
 char *WIFI_PASSWORD = "JimHotspot";
 char *SERVER_IP = "175.24.76.61";
 int SERVER_PORT = 54321;
 float PRESSURE_THRESHOLD = 0.1;
 
 // N = 2^32/365/24/60/60 = 136 年
-
 /*时间结构体，默认时间2000-01-01 00:00:00*/
 struct rtc_time systmtime = {0, 0, 0, 1, 1, 2000, 0};
 /*时间结构体，闹钟时间2000-01-01 00:00:08*/
@@ -35,41 +35,18 @@ struct rtc_time systmtime = {0, 0, 0, 1, 1, 2000, 0};
 //0,40,17,5,5,2020,0
 //};
 struct rtc_time clocktime = {15, 5, 0, 1, 1, 2000, 0};
-
 uint32_t ClockTable[3] = {0xffffffff, 0xffffffff, 0xffffffff}; //最多三个闹钟
 uint32_t *CurrentClock;
 
-void SendJson(float *data)
-{
-    char JsonToSend[300];
-    char temp[20];
-    float Pressure;
-    time = 0;
-    memset((void *)JsonToSend, 0, 100);
-    strcat(JsonToSend, "{\"DeviceID\": ");
-    sprintf(temp, "%d", DevideID);
-    strcat(JsonToSend, temp);
-    strcat(JsonToSend, ", \"Pressure\": [");
-
-    Pressure = *data++;
-    sprintf(temp, "%.3f", Pressure);
-    strcat(JsonToSend, temp);
-
-    for (int i = 1; i < 40; i++)
-    { //一包四十个数据，一共占200个字节
-        Pressure = *data++;
-        if (Pressure > 0.01)
-        {
-            sprintf(temp, ",%.3f", Pressure);
-            strcat(JsonToSend, temp);
-        }
-    }
-    strcat(JsonToSend, temp);
-    strcat(JsonToSend, "]}");
-    printf("%s", JsonToSend); //透传
-}
+// function declaration
+void GPIO_VCC_GND_Config(void);
+void SendJson(float *data);
 
 //【*】注意事项：
+
+// 编译设置：
+// Project -> Option for target -> Target -> Code Generation -> Use MicroLIB = ON
+
 //在bsp_rtc.h文件中：
 
 //1.可设置宏USE_LCD_DISPLAY控制是否使用LCD显示
@@ -97,7 +74,8 @@ int main()
     uint8_t datacount = 0;
 
     // hardware init start
-
+		// SystemInit();	// 配置系统时钟为72M 	
+	
     GENERAL_TIM_Init(); // 时钟初始化
     /* 配置RTC秒中断优先级 */
     RTC_NVIC_Config();
@@ -105,25 +83,27 @@ int main()
     /*设置闹钟寄存器*/
     //注意：设置闹钟寄存器之后对可编程计数器更改需要同步,可以重设一次闹钟来解决问题
     //北京时间比标准时间晚八个小时
-	/*
+	  /*
     clock_timestamp = mktimev(&clocktime) - TIME_ZOOM;
     RTC_SetAlarm(clock_timestamp);
     RTC_WaitForLastTask();
-*/
+    */
     // pressure infomation is from adc
     ADCx_Init();
 
     // BEEP init
     BEEP_GPIO_Config();
-    BEEP(OFF);
-
+		LED_GPIO_Config(); //LED 端口初始化 
+		GPIO_VCC_GND_Config();
+		
+		LED1(LED_ON);
     // USART for ESP8266 init
     USART_Config();
     USART_ITConfig(DEBUG_USARTx, USART_IT_RXNE | USART_IT_IDLE, DISABLE); //先关闭中断，防止8266的初始化信息导致混乱
     ESP8266_Init(WIFI_NAME, WIFI_PASSWORD, SERVER_IP, SERVER_PORT);
     USART_ITConfig(DEBUG_USARTx, USART_IT_RXNE | USART_IT_IDLE, ENABLE); //重新打开中断
-
     // hardware init done
+		LED1(LED_OFF);	
 
     time = 0;
     while (1)
@@ -153,7 +133,7 @@ int main()
 								databuf[i] = 0;
 							datacount = 0;
 							head = 0;
-							BEEP(OFF);
+							BEEP(BEEP_OFF);
             }
 						// 本地滤波算法 end
         }
@@ -163,14 +143,14 @@ int main()
             TimeAlarm = 0;
 						if (head == 1)
 						{
-							BEEP(ON);
+							BEEP(BEEP_ON);
 						}
-					  ClockSchedule();
         }
         if (ReceiveState == 1)
         {
             ReceiveState = 0;
             ESP8266_ReceiveData(aRxBuffer);
+					  ClockSchedule();
         }
         //20*1000ms,20s一次向服务器发送
         if (datacount == 40)
@@ -181,6 +161,77 @@ int main()
             datacount = 0;
         }
     }
+}
+
+void GPIO_VCC_GND_Config(void)	
+{
+	  // pressure sensor: PA1-AO PA2-GND PA3-VCC
+	  // beep: PB5-VCC PB6-MOT PB7-LED PB8-GND
+	  // ESP8266: PA9-RX PA10-TX PA11-VCC PA12-GND
+    RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOA, ENABLE); // 使能PC端口时钟  
+    RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOB, ENABLE); // 使能PC端口时钟  
+    RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOC, ENABLE); // 使能PC端口时钟  
+    GPIO_InitTypeDef GPIO_InitStructure;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+		// init PA2-GND
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2;	//选择对应的引脚
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
+    GPIO_ResetBits(GPIOA, GPIO_Pin_2 );
+		// init PA3-VCC
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3;	//选择对应的引脚
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
+    GPIO_SetBits(GPIOA, GPIO_Pin_3 );
+		// init PB5-VCC
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5;	//选择对应的引脚
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
+    GPIO_SetBits(GPIOB, GPIO_Pin_5 );
+		// init PB7-LED
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_7;	//选择对应的引脚
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
+    GPIO_SetBits(GPIOB, GPIO_Pin_7 );
+		// init PB8-GND
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8;	//选择对应的引脚
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
+    GPIO_ResetBits(GPIOB, GPIO_Pin_8 );
+		// init PA11-VCC
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_11;	//选择对应的引脚
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
+    GPIO_SetBits(GPIOA, GPIO_Pin_11 );
+		// init PA12-GND
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12;	//选择对应的引脚
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
+    GPIO_ResetBits(GPIOA, GPIO_Pin_12 );
+}
+
+void SendJson(float *data)
+{
+    char JsonToSend[300];
+    char temp[20];
+    float Pressure;
+    time = 0;
+    memset((void *)JsonToSend, 0, 100);
+    strcat(JsonToSend, "{\"DeviceID\": ");
+    sprintf(temp, "%d", DevideID);
+    strcat(JsonToSend, temp);
+    strcat(JsonToSend, ", \"Pressure\": [");
+
+    Pressure = *data++;
+    sprintf(temp, "%.3f", Pressure);
+    strcat(JsonToSend, temp);
+
+    for (int i = 1; i < 40; i++)
+    { //一包四十个数据，一共占200个字节
+        Pressure = *data++;
+        if (Pressure > 0.01)
+        {
+            sprintf(temp, ",%.3f", Pressure);
+            strcat(JsonToSend, temp);
+        }
+    }
+    strcat(JsonToSend, temp);
+    strcat(JsonToSend, "]}");
+    printf("%s", JsonToSend); //透传
 }
 
 /***********************************END OF FILE*********************************/
